@@ -2,15 +2,14 @@
 
 LMDZ versions need minimal modifications to create a module dedicated to communication with coupled Python scripts. This repository contains patches of modified LMDZ sources for versions: 
 
-- [LMDZ6](http://svn.lmd.jussieu.fr/LMDZ/LMDZ6/) (trunk 5891)
+- [LMDZ6](http://svn.lmd.jussieu.fr/LMDZ/LMDZ6/)
 
 ## Use a patch 
 - Install LMDZ6 with parallel MPI and OMP features
 - Copy patch sources in the LMDZ `libf` directory, overwrite already existing sources
 - Import and use Python communication module API (more details [here](https://morays-doc.readthedocs.io/en/latest/nemo.api_4.html#user-guide), template is for NEMO but works the same with LMDZ)
 
-**NB:** Fields to be passed through the API must be defined on the dynamics MPI grid, which might imply to use ```cpl2gath()``` and ```gath2cpl()``` functions to swap the fields from physics to dynamics grid, and conversely.
-- Compile with ```-cpp key_eophis -c true``` flags and OASIS_v5.0 (see this [guide](https://morays-doc.readthedocs.io/en/latest/nemo.getting_started.html#morays-environment))
+**NB:** Compile with ```-cpp key_eophis -c true``` flags and OASIS_v5.0 or later (see this [guide](https://morays-doc.readthedocs.io/en/latest/nemo.getting_started.html#morays-environment))
 
 ## Patch Modifications
   * Architecture: OASIS coupling module `oasis.F90` was initially managed within ocean coupling dedicated routines
