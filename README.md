@@ -1,7 +1,7 @@
-# Hybrid ML-LMDZ Doc
+# Hybrid ML-LMDZ
 
-This repository containsi:
+This repository contains:
 
-    -  Materials for Hybrid ML-LMDZ [documentation](https://ml-lmdz.readthedocs.io/en/latest/index.html)
+-  Materials for Hybrid ML-LMDZ [documentation](https://ml-lmdz.readthedocs.io/en/latest/index.html)
 
-    - Patches to create hybrid ML-LMDZ experiments with Eophis and OASIS3-MCT
+- Patches to create hybrid ML-LMDZ experiments with Eophis and OASIS3-MCT
