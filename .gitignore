@@ -1,0 +1,8 @@
+# Other
+.DS_STORE
+
+# Sphinx documentation
+docs/_build/
+build
+dist
+junit
