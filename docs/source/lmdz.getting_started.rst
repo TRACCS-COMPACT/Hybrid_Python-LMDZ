@@ -233,7 +233,7 @@ In accordance with the ``README`` content, we must install *LMDZ6 trunk 5891* wi
     pip install .
     
     # README instructions for DJ08
-    cd LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/INFERENCES
+    cd ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/INFERENCES
     pip install -r requirements.txt
 
     
@@ -256,7 +256,7 @@ This directory contains the material to compile LMDZ. Since the **Compilation** 
 
 .. code-block:: bash
 
-    # Doanload and create BENCH config
+    # Download and create BENCH config
     wget --no-check-certificate -nv -P ~/to_host/LMDZ6_PY/modipsl/config  http://lmdz.lmd.jussieu.fr/pub/3DBenchs/bench_lmdz_32x32x39.tar.gz
     tar -xf ~/to_host/LMDZ6_PY/modipsl/config/bench_lmdz_32x32x39.tar.gz   -C  ~/to_host/LMDZ6_PY/modipsl/config
 
@@ -268,7 +268,7 @@ A compilation script is given in the CONFIG directory:
     cp ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/CONFIG/compile.sh   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ
 
 
-The architecture files are compulsory to compile LMDZ. Templates for the experiment are also given in CONFIG and are compatible with the Morays container. Depending on your hardware environment, they might not be not suitable. Feel free to copy and edit them in accordance with your machine. If so, be sure to have the OASIS3-MCT and XIOS paths corresponding to those compiled with OASIS3-MCT_v5.0 libraries.
+The architecture files are compulsory to compile LMDZ. Templates for the experiment are also given in CONFIG and are compatible with the Morays container. Depending on your software environment, they might not be not suitable. Feel free to copy and edit them in accordance with your machine. If so, be sure to have the OASIS3-MCT and XIOS paths corresponding to those compiled with OASIS3-MCT_v5.0 libraries.
 
 
 .. code-block:: bash
@@ -312,12 +312,12 @@ Experiment patch
     # Copy experiment sources
     cp  ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/CONFIG/my_src/*   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/phylmd
 
-
 Now we have everything required to compile LMDZ:
 
 .. code-block:: bash
 
     cd  ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ
+    chmod +x compile.sh
     ./compile.sh
 
     # save executable
@@ -443,7 +443,7 @@ If everything went good, we should have similar figures than those stored in RES
 Going further
 -------------
 
-From now on, you have an usable deployed Morays experiment for NEMO. Do not hesitate to check out and deploy other test cases to get inspired.
+From now on, you have an usable deployed hybrid experiment for LMDZ. Do not hesitate to check out and deploy other test cases to get inspired.
 
 Here are the locations where you can play with:
     - global coupling settings: ``eophis_main.py``
