@@ -7,7 +7,7 @@ This `TRACCS-COMPACT`_ project provides a collection of deployment examples of t
 
 `OASIS3-MCT`_ is a parallelized coupling library that performs field exchanges between coupled Earth System Model components. Eophis is a Python library that facilitates the creation and the configuration of an OASIS3-MCT environment in a Python script to couple with Fortran ESM. It can be deployed with any ESM that does possess an OASIS3-MCT interface.
 
-In this context, a hybrid LMDZ experiment with Eophis is an atmospheric GCM simulation in which LMDZ sends fields towards an external Python script thouhg OASIS3-MCT, and deployed by Eophis. The results computed by the Python model are sent back to the atmosphere and used for the solution.
+In this context, a hybrid LMDZ experiment with Eophis is an atmospheric GCM simulation in which LMDZ sends fields towards an external Python script through OASIS3-MCT, and deployed by Eophis. The results computed by the Python model are sent back to the atmosphere and used for the solution.
 
 .. image:: images/morays_eophis.png
    :width: 900px
@@ -21,15 +21,15 @@ Typical applications include:
 
 -------------------------------
 
-Every experiments are documented in a self contained separate GitHub repository, that provides all the material for reproducing the use case. List of available experiments can be found in this `section <https://morays-doc.readthedocs.io/en/latest/lmdz_exp.html>`_. A last objective of this documentation is to give detailed guidelines to create custom hybrid LMDZ test cases.
+All the experiments are documented in a self contained separate GitHub repository, that provides all the material for reproducing the use case. List of available experiments can be found in this `section <https://morays-doc.readthedocs.io/en/latest/lmdz_exp.html>`_. A last objective of this documentation is to give detailed guidelines to create custom hybrid LMDZ test cases.
 
 
 .. note ::
 
-    Newcomers are welcome to start with these tutorials:
+    Newcomers are welcome to start with this tutorial:
         - `Reproduce an existing hybrid LMDZ experiment <https://morays-doc.readthedocs.io/en/latest/lmdz.getting_started.html>`_
 
-    People familiar with Eophis or LMDZ are encouraged to follow these tutorials:
+    People familiar with Eophis or LMDZ are encouraged to follow this tutorial:
         - `Create a hybrid LMDZ experiment <https://morays-doc.readthedocs.io/en/latest/lmdz.tuto.html>`_
 
     Advanced users can find advanced tools and informations in corresponding model sections:

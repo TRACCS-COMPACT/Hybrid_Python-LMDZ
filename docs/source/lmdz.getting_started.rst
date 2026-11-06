@@ -89,7 +89,7 @@ Here is the difficulty: LMDZ is written in Fortran, while MetPy is a Python libr
 
 The experiment will execute the following steps:
     - LMDZ is modeling the atmospheric circulation
-    - It sends the atmospheric fields towards the Python script every time step of the physic core
+    - It sends the atmospheric fields towards the Python script every time step of the physics core
     - The MetPy Python script computes the DJ08 wet-bulb temperature
     - Results are sent back to LMDZ and written in an output file with XIOS
 
@@ -98,7 +98,7 @@ The experiment will execute the following steps:
 1. Software environment
 -----------------------
 
-Every hybrid experiments with LMDZ require a couple of shared libraries. We quickly summarize the steps to install them.
+All the hybrid experiments with LMDZ require a couple of shared libraries. We quickly summarize the steps to install them.
 
 .. note::
 
@@ -224,7 +224,7 @@ In accordance with the ``README`` content, we must install *LMDZ6 trunk 5891* wi
     cd ~/to_host
     wget http://lmdz.lmd.jussieu.fr/pub/install_lmdz.sh
     chmod +x install_lmdz.sh
-    ./install_lmdz.sh -name LMDZ6_PY -netcdf 0 -parallel mpi_omp -veget none -rad oldrad
+    ./install_lmdz.sh -name LMDZ6_PY -netcdf 0 -parallel mpi_omp -veget none -rad oldrad -bench 0
     
     # Clone and install Eophis_v1.1.0
     cd ~/to_host
@@ -251,13 +251,14 @@ We will now browse the directories of the ``BENCH32x32x39.DJ08`` experiment to d
 3. CONFIG - LMDZ case
 ---------------------
 
-This directory contains the material to compile LMDZ. Since the **Compilation** section of the ``README`` did not mention any specific tool for the compilation, we will follow the standard `modipsl configuration structure <https://ipsl.pages.in2p3.fr/icmc/plateforme/documentation/igcmg_doc/Install/>`_. Note that the latter is automatically deployed with the ``install_lmdz.sh`` script that we used earlier.
+This directory contains the material to compile LMDZ. Since the **Compilation** section of the ``README`` did not mention any specific tool for the compilation, we will follow the standard `modipsl configuration structure <https://ipsl.pages.in2p3.fr/icmc/plateforme/documentation/igcmg_doc/Install/>`_. Note that the latter is automatically deployed with the ``install_lmdz.sh`` script.
 
 
 .. code-block:: bash
 
-    # Create config -- it already exists, we juste move it
-    mv ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/BENCH32x32x39   ~/to_host/LMDZ6_PY/modipsl/config
+    # Doanload and create BENCH config
+    wget --no-check-certificate -nv -P ~/to_host/LMDZ6_PY/modipsl/config  http://lmdz.lmd.jussieu.fr/pub/3DBenchs/bench_lmdz_32x32x39.tar.gz
+    tar -xf ~/to_host/LMDZ6_PY/modipsl/config/bench_lmdz_32x32x39.tar.gz   -C  ~/to_host/LMDZ6_PY/modipsl/config
 
 A compilation script is given in the CONFIG directory:
     
@@ -428,11 +429,11 @@ POST-PROCESS directory contains material and/or scripts to compute and plot resu
     # install dependencies, if necessary
     cd ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/POST-PROCESS/
     pip install -r requirements.txt
-    cp plots_res.py  ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
+    cp plot_res.py  ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
     
     # Plot, you might need to exit container (and lima VM) to visualize figures
     cd ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
-    python3 ./plots_res.py
+    python3 ./plot_res.py
 
 
 If everything went good, we should have similar figures than those stored in RES.
