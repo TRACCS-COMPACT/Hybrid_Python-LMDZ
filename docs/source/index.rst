@@ -3,12 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-ML-LMDZ documentation
-=====================
+Hybrid Python-LMDZ documentation
+================================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
 
 Contents:
 ---------
@@ -21,4 +18,5 @@ Contents:
    Getting started <lmdz.getting_started>
    LMDZ for hybrid modelling <lmdz.api>
    Tutorial: Create a hybrid LMDZ modelling experiment <lmdz.tuto>
+   Collection <lmdz_exp>
    Contribute <contribute>

@@ -1,7 +1,7 @@
-ML-LMDZ
-=======
+Hybrid Python-LMDZ
+==================
 
-This project provides a collection of deployment examples of the `Eophis`_ package in `LMDZ`_. It also proposes a solution for sharing the model experiments across centers.
+This `TRACCS-COMPACT`_ project provides a collection of deployment examples of the `Eophis`_ package in `LMDZ`_. It also proposes a solution for sharing the model experiments across centers.
 
 -------------------------------
 
@@ -42,3 +42,4 @@ Every experiments are documented in a self contained separate GitHub repository,
 .. _Eophis: https://github.com/meom-group/eophis/
 .. _OASIS3-MCT: https://oasis.cerfacs.fr/en/
 .. _LMDZ: https://lmdz.lmd.jussieu.fr/
+.. _TRACCS-COMPACT: https://psl.hal.science/TRACCS-PC5-COMPACT

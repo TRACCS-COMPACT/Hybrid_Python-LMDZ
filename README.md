@@ -1,7 +1,7 @@
-# Hybrid ML-LMDZ
+# Hybrid Python-LMDZ
 
 This repository contains:
 
--  Materials for Hybrid ML-LMDZ [documentation](https://ml-lmdz.readthedocs.io/en/latest/index.html)
+-  Material for Hybrid Python-LMDZ [documentation](https://ml-lmdz.readthedocs.io/en/latest/index.html)
 
-- Patches to create hybrid ML-LMDZ experiments with Eophis and OASIS3-MCT
+- TRACCS-COMPACT patches to create hybrid Python-LMDZ experiments with Eophis and OASIS3-MCT

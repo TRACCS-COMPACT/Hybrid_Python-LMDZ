@@ -5,11 +5,11 @@ Getting started
 .. toctree::
    :maxdepth: 2
 
-In this tutorial, we will deploy a Morays experiment for NEMO that is stored in the Morays collection. Objective of the experiment is to couple the ML model proposed by `Guillaumin and Zanna, 2021 <https://doi.org/10.1029/2021MS002534>`_ (GZ21) with the `DINO <https://github.com/vopikamm/DINO>`_ config.
+In this tutorial, we will deploy a hybrid experiment for LMDZ that is stored in the TRACCS-COMPACT collection. Objective of the experiment is to couple the LMDZ BENCH test case with the `MetPy <https://unidata.github.io/MetPy/latest/>`_ library to compute the wet-bulb potential temperature using the `Davies-Jones (2008) <https://doi.org/10.1175/2007MWR2224.1?utm_source=chatgpt.com>`_ formulation.
 
 
 Prerequisites to the tutorial:
-    - Operating NEMO environment (see `NEMO doc <https://sites.nemo-ocean.io/user-guide/install.html>`_ for help)
+    - Operating LMDZ environment (see `LMDZ doc <https://lmdz.lmd.jussieu.fr/utilisateurs/installation-lmdz>`_ for help)
     - Operating Python environment
 or:
     - Installed Apptainer
@@ -72,31 +72,33 @@ or:
 Introduction
 ------------
 
-DINO stands for `diabatic Neverworld2 <https://gmd.copernicus.org/articles/15/6567/2022/>`_ . It's an idealized configuration that aims to capture essential pole-to-pole ocean dynamics for mesoscale turbulence study.
+The LMDZ BENCH case is a realistic low-resolution atmospheric general circulation configuration designed for demonstration and educational purposes.
 
-The work of GZ21 takes place in the context of parameterizing the ocean subgrid momentum forcing with a ML model. The goal is to predict the mean and standard deviation of a Gaussian probability distribution at each grid cell. Those are intended to be used for a stochastic prediction of the subgrid forcing. We wish to use the GZ21 parameterization to enhance the solution of a DINO simulation. The model relies on a CNN that takes macroscale surface velocities as inputs and returns mean and deviation as outputs.
+The wet-bulb potential temperature is a useful thermodynamic diagnostic for characterizing atmospheric moisture and stability. Its computation involves moist thermodynamic processes that can be approximated using different formulations.
+The `Davies-Jones (2008) <https://doi.org/10.1175/2007MWR2224.1?utm_source=chatgpt.com>`_ (DJ08) formulation provides an accurate and computationally efficient method for estimating this quantity.
+Available through the MetPy Python library, this formulation offers an alternative to the thermodynamic diagnostics currently implemented in LMDZ.
+It relies on atmospheric pressure, temperature, and specific humidity, and can be evaluated independently at each grid cell.
 
-Here is the difficulty: the CNN model is written with native Python libraries while NEMO is written in Fortran. Thus, an interface is required to make both to coexist and exchange data. Since NEMO has an OASIS3-MCT interface, we can use the Eophis library to couple an external Python script that will contain the GZ21 model.
+Here is the difficulty: LMDZ is written in Fortran, while MetPy is a Python library. An interface is therefore required to allow both components to coexist and exchange data during runtime. Since LMDZ provides an OASIS3-MCT interface, we can use the Eophis library to couple an external Python script that receives the atmospheric fields, computes the wet-bulb potential temperature using MetPy, and sends the resulting diagnostic field back to LMDZ.
 
 
-.. image:: images/NEMO_GZ21_XIOS.png
-    :width: 600px
+.. image:: images/LMDZ_PY_XIOS.png
+    :width: 550px
     :align: center
 
 
 The experiment will execute the following steps:
-    - NEMO is modeling the DINO ocean circulation
-    - It sends the surface velocity fields towards the Python script every time step
-    - GZ21 model in Python script predicts the mean and standard deviation and the forcing fields
-    - Results are sent back to NEMO and written in an output file with XIOS
-    - Forcing fields are finally used to parameterize the subgrid momentum
+    - LMDZ is modeling the atmospheric circulation
+    - It sends the atmospheric fields towards the Python script every time step of the physic core
+    - The MetPy Python script computes the DJ08 wet-bulb temperature
+    - Results are sent back to LMDZ and written in an output file with XIOS
 
 
 
-1. Morays environment
----------------------
+1. Software environment
+-----------------------
 
-Every Morays experiments with NEMO require a couple of shared libraries. We quickly summarize the steps to install them.
+Every hybrid experiments with LMDZ require a couple of shared libraries. We quickly summarize the steps to install them.
 
 .. note::
 
@@ -107,7 +109,7 @@ Every Morays experiments with NEMO require a couple of shared libraries. We quic
 Compile OASIS3-MCT_v5.0
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-OASIS3-MCT is the coupling library on which both NEMO and Eophis rely to perform field exchanges. OASIS3-MCT_v5.0 is the minimal required version and must be dynamically compiled. See `OASIS3-MCT documentation <https://oasis.cerfacs.fr/en/documentation/>`_ for more details.
+OASIS3-MCT is the coupling library on which both LMDZ and Eophis rely to perform field exchanges. OASIS3-MCT_v5.0 is the minimal required version and must be dynamically compiled. See `OASIS3-MCT documentation <https://oasis.cerfacs.fr/en/documentation/>`_ for more details.
 
 .. code-block:: bash
 
@@ -163,7 +165,7 @@ Activate OASIS3-MCT Python API. The best is to put this command in your ``bash_p
 Compile XIOS with OASIS3-MCT
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-XIOS is used by NEMO to write results. It must be compiled with the abovementioned OASIS3-MCT libraries. See `XIOS documentation <https://forge.ipsl.jussieu.fr/ioserver/wiki/documentation>`_ for more details about compilation of XIOS with OASIS3-MCT.
+XIOS is used by LMDZ to write results. It must be compiled with the abovementioned OASIS3-MCT libraries. See `XIOS documentation <https://forge.ipsl.jussieu.fr/ioserver/wiki/documentation>`_ for more details about compilation of XIOS with OASIS3-MCT.
 
 
 .. code-block:: bash
@@ -198,29 +200,31 @@ Edit your ``arch-<YOUR_MACHINE>.path`` file to include the OASIS3-MCT libraries 
 2. Experiment environment
 -------------------------
 
-Now that we have set up the common environment for all Morays experiments, we need to install the dependencies related to the specific experiment of interest. Let's find it in the `Morays repositories <https://github.com/orgs/morays-community/repositories>`_. Those are named with a simple convention: ``<OCEAN_CODE>-<EXPERIMENT>``. The corresponding repository for the tutorial is then ``NEMO-DINO_Subgrid_Momentum``:
+Now that we have set up the common environment for all hybrid LMDZ experiments, we need to install the dependencies related to the specific experiment of interest. Let's find it in the `TRACCS-COMPACT repositories <https://github.com/orgs/TRACCS-COMPACT/repositories>`_. Those are named with a simple convention: ``<CODE>-<EXPERIMENT>``. The corresponding repository for the tutorial is then ``LMDZ-BENCH32x32x39``:
 
 .. code-block:: bash
 
     mkdir -p ~/to_host
     cd ~/to_host
-    git clone https://github.com/morays-community/NEMO-DINO_Subgrid_Momentum.git
+    git clone https://github.com/TRACCS-COMPACT/LMDZ-BENCH32x32x39.git
 
 The repository contains a ``README`` with informations about experiment context and motivations.
 
 The other informations listed in ``README`` are the software requirements:
-    - **Compilation:** ocean code version to compile and with which potential additionnal material
+    - **Compilation:** code version to compile and with which potential additionnal material
     - **Python:** Eophis version to install and potential additional Python material
     - **Run:** submission tools to manage the experiment execution
     - **Post-Process:** post-processing libraries and plotting tools
 
-In accordance with the ``README`` content, we must install *NEMO_v4.2.1*, *Eophis_v1.1.0* and GZ21 package. Other tools and scripts are already contained in the repository.
+In accordance with the ``README`` content, we must install *LMDZ6 trunk 5891* with help of *install_lmdz.sh* script and *Eophis_v1.1.0*. Other tools and scripts are already contained in the repository.
 
 .. code-block:: bash
 
-    # Clone NEMO_v4.2.1
+    # Clone LMDZ6
     cd ~/to_host
-    git clone --branch 4.2.1 https://forge.nemo-ocean.eu/nemo/nemo.git nemo_v4.2.1
+    wget http://lmdz.lmd.jussieu.fr/pub/install_lmdz.sh
+    chmod +x install_lmdz.sh
+    ./install_lmdz.sh -name LMDZ6_PY -netcdf 0 -parallel mpi_omp -veget none -rad oldrad
     
     # Clone and install Eophis_v1.1.0
     cd ~/to_host
@@ -228,73 +232,71 @@ In accordance with the ``README`` content, we must install *NEMO_v4.2.1*, *Eophi
     cd eophis_v1.1.0
     pip install .
     
-    # README instructions for GZ21 package
-    cd ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/INFERENCES/gz21_ocean_momentum
-    pip install -e .
+    # README instructions for DJ08
+    cd LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/INFERENCES
+    pip install -r requirements.txt
+
     
     
-We will now browse the directories of the ``DINO_Subgrid_Momentum.GZ21`` experiment to deploy the test case.
+We will now browse the directories of the ``BENCH32x32x39.DJ08`` experiment to deploy the test case.
 
 .. code-block:: bash
 
-    ls ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/
+    ls ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/
     CONFIG  INFERENCES  POST-PROCESS  RES  RUN
 
 
 
 
-3. CONFIG - NEMO case
+3. CONFIG - LMDZ case
 ---------------------
 
-This directory contains the material to compile NEMO. Since the **Compilation** section of the ``README`` did not mention any specific tool for the compilation, we will follow the standard NEMO `configuration structure <https://sites.nemo-ocean.io/user-guide/install.html#preparing-an-experiment>`_. We first need to create a custom test case:
+This directory contains the material to compile LMDZ. Since the **Compilation** section of the ``README`` did not mention any specific tool for the compilation, we will follow the standard `modipsl configuration structure <https://ipsl.pages.in2p3.fr/icmc/plateforme/documentation/igcmg_doc/Install/>`_. Note that the latter is automatically deployed with the ``install_lmdz.sh`` script that we used earlier.
+
 
 .. code-block:: bash
 
-    # Create NEMO test case
-    echo "DINO_GZ21 OCE" >> ~/to_host/nemo_v4.2.1/tests/work_cfgs.txt
-    mkdir -p ~/to_host/nemo_v4.2.1/tests/DINO_GZ21/EXPREF
-    mkdir -p ~/to_host/nemo_v4.2.1/tests/DINO_GZ21/MY_SRC
+    # Create config -- it already exists, we juste move it
+    mv ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/BENCH32x32x39   ~/to_host/LMDZ6_PY/modipsl/config
 
-
-A list of active CPP keys is given as material in the CONFIG directory:
+A compilation script is given in the CONFIG directory:
     
 .. code-block:: bash
 
-    # Copy CPP keys
-    cp ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/CONFIG/cpp_DINO_GZ21.fcm   ~/to_host/nemo_v4.2.1/tests/DINO_GZ21/
+    # Copy compilation script
+    cp ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/CONFIG/compile.sh   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ
 
 
+The architecture files are compulsory to compile LMDZ. Templates for the experiment are also given in CONFIG and are compatible with the Morays container. Depending on your hardware environment, they might not be not suitable. Feel free to copy and edit them in accordance with your machine. If so, be sure to have the OASIS3-MCT and XIOS paths corresponding to those compiled with OASIS3-MCT_v5.0 libraries.
 
-An architecture file is compulsory to compile NEMO. A template for the experiment is also given in CONFIG. Depending on your hardware environment, it might not be not suitable. Feel free to copy and edit it in accordance with your machine. Alternatively, the automatic generation may be used:
 
 .. code-block:: bash
 
-    cd ~/to_host/nemo_v4.2.1/arch
-    ./build_arch-auto.sh
-    cp arch-auto.fcm arch-X64_DINO_GZ21.fcm
-    
-
-Regardless of the method you chose, be sure to have your architecture file copied in ``~/to_host/nemo_v4.2.1/arch/`` and to have the OASIS3-MCT and XIOS paths corresponding to those compiled with OASIS3-MCT_v5.0 libraries.
+    # Copy arch files
+    cp ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/CONFIG/arch-*   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/arch
 
 
 
-Morays patch
-~~~~~~~~~~~~
 
-``README`` mentionned that the  NEMO sources must be patched with Morays sources. Those are the minimal NEMO sources modifications to set up a Morays experiment. They enable flexible external communication through the OASIS3-MCT module. We can obtain them by cloning this repository:
+Generic hybrid LMDZ patch
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``README`` mentionned that the LMDZ sources must be completed with the TRACCS-COMPACT patch. It provides the minimal LMDZ sources modifications to set up a hybrid experiment. They enable flexible external communication through the OASIS3-MCT module. We can obtain them by cloning this repository:
 
 .. code-block:: bash
 
     cd ~/to_host
-    git clone https://github.com/morays-community/Patches-NEMO.git
+    git clone https://github.com/TRACCS-COMPACT/Hybrid_Python-LMDZ.git
 
 
-We transfer the Morays sources for NEMO_v4.2.1 to our custom test case. Only the sources of the OCE module are needed:
+We transfer the patch sources for LMDZ to our test case:
 
 .. code-block:: bash
 
-    # Copy Morays sources
-    cp ~/to_host/Patches-NEMO/NEMO_v4.2.1/OCE/*   ~/to_host/nemo_v4.2.1/tests/DINO_GZ21/MY_SRC/
+    # Copy patch sources in corresponding LMDZ source directories
+    cd ~/to_host/Hybrid_Python-LMDZ/LMDZ_Patches/LMDZ6
+    cp cpl_mod.F90 oasis.F90 pyfld.F90 pycpl.F90 eophis_def.F90 phyetat0_mod.f90   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/phylmd
+    cp mod_const_mpi.F90 parallel_lmdz.F90   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/dyn3dmem
 
 
 
@@ -302,44 +304,38 @@ We transfer the Morays sources for NEMO_v4.2.1 to our custom test case. Only the
 Experiment patch
 ~~~~~~~~~~~~~~~~
 
-``README`` also specified to patch NEMO with the experiment specific sources. Morays sources do not configure the external communication module in accordance with ``DINO_Subgrid_Momentum.GZ21`` but experiment sources do. They also contain the code to write and use the outsourced forcing fields. They are also stored in CONFIG:
+``README`` also specified to patch LMDZ with the experiment specific sources. The TRACCS-COMPACT patch does not configure the external communication module in accordance with ``BENCH32x32x39.DJ08``, but the experiment patch does. It also contains the code to write the outsourced fields. It is also stored in CONFIG:
 
 .. code-block:: bash
 
     # Copy experiment sources
-    cp ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/CONFIG/my_src/*   ~/to_host/nemo_v4.2.1/tests/DINO_GZ21/MY_SRC/
+    cp  ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/CONFIG/my_src/*   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/phylmd
 
 
+Now we have everything required to compile LMDZ:
+
+.. code-block:: bash
+
+    cd  ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ
+    ./compile.sh
+
+    # save executable
+    cp  ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/bin/gcm_32x32x39_phylmd_oldrad_para_mem_couple.e  ~/to_host/LMDZ6_PY/modipsl/bin
 
 
-4. RUN - NEMO settings
+4. RUN - LMDZ settings
 ----------------------
 
-This directory contains all the production material, such as XIOS configuration files and NEMO namelists. We need them obviously:
+This directory contains all the production material, such as XIOS configuration files and LMDZ namelists. We need them obviously:
 
 .. code-block:: bash
     
     # Copy xml files and namelists
-    cp ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/RUN/NAMELISTS/*   ~/to_host/nemo_v4.2.1/tests/DINO_GZ21/EXPREF/
-    cp ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/RUN/XML/*   ~/to_host/nemo_v4.2.1/tests/DINO_GZ21/EXPREF/
+    cp -r  ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/RUN/*   ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
 
 
-We have everything we need to compile NEMO:
-
-.. code-block:: bash
-
-    cd ~/to_host/nemo_v4.2.1
-    ./makenemo -m "X64_DINO_GZ21_GCC" -a DINO_GZ21 -n "MY_DINO_GZ21" -j 8
-
-
-In RUN directory is also contained the execution material for the experiment. Except ``job.ksh``, no particular tool to manage the run is specified in ``README``:
-
-.. code-block:: bash
-    
-    cp ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/RUN/job.ksh   ~/to_host/nemo_v4.2.1/tests/MY_DINO_GZ21/EXP00/
-
-
-Script ``job.ksh`` assumes that NEMO will run on a HPC system via a SBATCH scheduler. Adapt script content or remove SBATCH header if necessary.
+In RUN is also contained the execution material for the experiment. Except ``job.ksh``, no particular tool to manage the run is specified in ``README``.
+Script ``job.ksh`` assumes that LMDZ will run on a HPC system via a SBATCH scheduler. Adapt script content or remove SBATCH header if necessary.
 
 
 
@@ -347,26 +343,21 @@ Script ``job.ksh`` assumes that NEMO will run on a HPC system via a SBATCH sched
 5. INFERENCES - Python material
 -------------------------------
 
-This directory contains the Python scripts for hybrid modeling. It also includes additional packages for the Python model (if necessary). Here, GZ21 model sources and its dependencies are contained in a git submodule ``gz21_ocean_momentum``. The model is imported and used in accordance with the experiment objectives in ``ml_models.py``. Finally, ``main.py`` contains the Eophis instructions to couple ``ml_models.py`` with NEMO.  Let's copy them to the test case:
+This directory contains the Python scripts for hybrid modeling. It also includes additional packages for the Python model (if necessary). Here, MetPy is imported and used in accordance with the experiment objectives in ``models.py``. Finally, ``eophis_main.py`` contains the Eophis instructions to couple ``models.py`` with LMDZ.  Let's copy them in a modipsl dedicated directory:
 
 .. code-block:: bash
 
-    cp ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/INFERENCES/*.py   ~/to_host/nemo_v4.2.1/tests/MY_DINO_GZ21/EXP00/
+    # Create directory dedicated to Python
+    mkdir -p ~/to_host/LMDZ6_PY/modipsl/modeles/PYTHON
+    cp ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/INFERENCES/*   ~/to_host/LMDZ6_PY/modipsl/modeles/PYTHON
     
     
-Model weights are in the folder of the same name. For this tutorial, we will use those:
-    
-.. code-block:: bash
-
-    cp ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/INFERENCES/weights/gz21_huggingface/low-resolution/files/trained_model.pth   ~/to_host/nemo_v4.2.1/tests/MY_DINO_GZ21/EXP00/
-
-
-We already installed GZ21 package in section **2. Experiment environment**. It may be tested by running ``ml_models.py`` as a standalone script:
+We already installed Python model dependencies in section **2. Experiment environment**. It may be tested by running ``models.py`` as a standalone script:
 
 .. code-block:: bash
 
-    cd ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/INFERENCES/
-    python3 ./ml_models.py
+    cd ~/to_host/LMDZ6_PY/modipsl/modeles/PYTHON
+    python3 ./models.py
     # Should print "Test successful"
         
     
@@ -374,25 +365,36 @@ We already installed GZ21 package in section **2. Experiment environment**. It m
 6. Running the experiment
 -------------------------
 
-Everything is ready to execute the hybrid experiment. Submit the run with ``job.ksh`` in accordance with your computing environment. If you are not running NEMO on a HPC system, execute commands below inside the experiment directory:
+Everything is ready to execute the hybrid experiment. Submit the run with ``job.ksh`` in accordance with your computing environment. If you are not running LMDZ on a HPC system, execute commands below inside the config directory:
 
 .. code-block:: bash
 
-    cd ~/to_host/nemo_v4.2.1/tests/MY_DINO_GZ21/EXP00/
+    cd  ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
 
     # clean working directory
     touch namcouple
+    touch eophis_nml
     rm namcouple*
+    rm eophis_nml
+
+    # get executable and execution material
+    cp ../../bin/gcm_32x32x39_phylmd_oldrad_para_mem_couple.e  lmdz_cpl.e
+    cp -r ../../modeles/PYTHON/*  .
+    cp XML/*  .
+    cp PARAM/*  .
 
     # execute eophis in preproduction mode to generate namcouple
-    python3 ./main.py --exec preprod
+    python3 ./eophis_main.py --exec preprod
     
     # save eophis preproduction logs
     mv eophis.out eophis_preprod.out
     mv eophis.err eophis_preprod.err
     
-    # run coupled NEMO-Python
-    mpirun -np 1 ./nemo : -np 1 python3 ./main.py --exec prod
+    # run LMDZ-DJ08
+    mpirun -np 1 ./lmdz_cpl.e : -np 1 python3 ./eophis_main.py --exec prod
+
+
+.. warning :: If you are using the `libIGCM Tools suite <https://ipsl.pages.in2p3.fr/icmc/plateforme/documentation/igcmg_doc/Tools/>`_, above commands are automatically handled. Be careful on the paths defined in the run cards.
 
 
 If run is going well, Eophis log should contain messages like these:
@@ -400,49 +402,40 @@ If run is going well, Eophis log should contain messages like these:
 .. code-block:: bash
 
     tail eophis.out
-    Iteration 2: 2700s -- 0:45:00
-       Treating u, v received through tunnel TO_NEMO_FIELDS
-       Sending back u_f, v_f through tunnel TO_NEMO_FIELDS
-    Iteration 3: 5400s -- 1:30:00
-       Treating u, v received through tunnel TO_NEMO_FIELDS
-       Sending back u_f, v_f through tunnel TO_NEMO_FIELDS
-    Iteration 4: 8100s -- 2:15:00
-       Treating u, v received through tunnel TO_NEMO_FIELDS
-       Sending back u_f, v_f through tunnel TO_NEMO_FIELDS
-    Iteration 5: 10800s -- 3:00:00
-       Treating u, v received through tunnel TO_NEMO_FIELDS
-       Sending back u_f, v_f through tunnel TO_NEMO_FIELDS
+    Iteration 2: 900s -- 0:15:00
+       Treating pres, temp, q_spec received through tunnel TO_LMDZ
+       Sending back theta_w through tunnel TO_LMDZ
+    Iteration 3: 1800s -- 0:30:00
+       Treating pres, temp, q_spec received through tunnel TO_LMDZ
+       Sending back theta_w through tunnel TO_LMDZ
+    Iteration 4: 2700s -- 0:45:00
+       Treating pres, temp, q_spec received through tunnel TO_LMDZ
+       Sending back theta_w through tunnel TO_LMDZ
 
 
-This means that the exchanges are well performed. Check out also that output files ``NEVERWORLD.1d_gridUsurf.nc`` and ``NEVERWORLD.1d_gridVsurf.nc`` have been created. They contain the subgrid forcing fields computed by GZ21 model.
-
-
-.. note:: If your computing environment is able to give you an access to a CUDA-compatible GPU, ``ml_models.py`` will automatically execute the prediction on the GPU while NEMO and Eophis will be executed on CPUs.
+This means that the exchanges are well performed. Check out also that output file ``histday.nc`` has been created. It contains the diagnostic field computed by DJ08 formulation.
 
 
 
 7. POST-PROCESS and RES
 -----------------------
 
-POST-PROCESS directory contains material and/or scripts to compute and plot results. The latter are stored in the RES directory to be available for consultation. In this tutorial, only a simple Python script ``plots_res.py`` should be executed to plot figures. Required dependencies are also given.
+POST-PROCESS directory contains material and/or scripts to compute and plot results. The latter are stored in the RES directory to be available for consultation. In this tutorial, only a simple Python script ``plot_res.py`` should be executed to plot figures. Required dependencies are also given.
 
 
 .. code-block:: bash
 
     # install dependencies, if necessary
-    cd ~/to_host/NEMO-DINO_Subgrid_Momentum/DINO_Subgrid_Momentum.GZ21/POST-PROCESS/
+    cd ~/to_host/LMDZ-BENCH32x32x39/BENCH32x32x39.DJ08/POST-PROCESS/
     pip install -r requirements.txt
-    cp plots_res.py  ~/to_host/nemo_v4.2.1/tests/MY_DINO_GZ21/EXP00/
+    cp plots_res.py  ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
     
     # Plot, you might need to exit container (and lima VM) to visualize figures
-    cd ~/to_host/nemo_v4.2.1/tests/MY_DINO_GZ21/EXP00/
+    cd ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
     python3 ./plots_res.py
 
 
-If everything went good, we should have similar figures than those stored in RES. Same plots for a standard DINO config without GZ21 model are also stored for comparison.
-
-As described in the introduction, NEMO only sends the surface velocities towards GZ21 model. However, the implementation allows to send the whole 3D grid if you wish. Adapt the value of ``nn_lvl`` in NEMO namelist.
-
+If everything went good, we should have similar figures than those stored in RES.
 
 
 
@@ -452,12 +445,11 @@ Going further
 From now on, you have an usable deployed Morays experiment for NEMO. Do not hesitate to check out and deploy other test cases to get inspired.
 
 Here are the locations where you can play with:
-    - global coupling settings: ``main.py``
-    - Fortran interface: functions ``send_to_python()`` , ``receive_from_python()`` from ``pycpl.F90``
-    - fields sent by NEMO: routine ``inputs_gz21()`` in ``pyfld.f90``
-    - computation of forcing fields and ML model configuration: ``ml_models.py``
-    - use of received forcing fields: routine ``update_from_gz21()`` in ``pyfld.f90``
-    - calling of abovementionned routines within NEMO: ``stpmlf.F90``
-    - NEMO settings: namelists and xml files
+    - global coupling settings: ``eophis_main.py``
+    - Fortran interface: functions ``send_to_python_phys()`` , ``receive_from_python_phys()`` from ``pycpl.F90``
+    - fields sent by LMDZ: ``physiq_mod.f90``
+    - computation of Python fields and ML model configuration: ``models.py``
+    - received fields in LMDZ: ``physiq_mod.f90`` and ``pyfld.f90``
+    - LMDZ settings: .def and .xml files
  
-Next sections provide more details on how to configure the NEMO external communication module, and to create a Morays experiment for NEMO from scratch.
+Next sections provide more details on how to configure the LMDZ external communication module, and to create a hybrid experiment for LMDZ from scratch.
