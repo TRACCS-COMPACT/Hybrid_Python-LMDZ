@@ -1,0 +1,29 @@
+NETCDF_INCDIR="-I$(nf-config --includedir) -I$(nc-config --includedir)"  # nc required for xios
+# Ugly hack for orchidee <=2.0
+HOME_LIB=/usr/lib/aarch64-linux-gnu
+#NETCDF_LIBDIR="-L$(nf-config --flibs | sed -e "s/-L//")"
+NETCDF_LIBDIR="-L$HOME_LIB/lib -Wl,-rpath,$HOME_LIB/lib"
+NETCDF_LIB="-lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -L/usr/lib -lz"
+NETCDF95_INCDIR="-I$(pwd)/../../include"
+NETCDF95_LIBDIR="-L$(pwd)/../../lib"
+NETCDF95_LIB="-lnetcdf95"
+
+# Exported
+IOIPSL_INCDIR="-I$(pwd)/../IOIPSL/inc -I$(pwd)/../IOIPSL/lib"
+IOIPSL_LIBDIR="-L$(pwd)/../IOIPSL/inc -L$(pwd)/../IOIPSL/lib"
+IOIPSL_LIB="-lioipsl"
+
+# Exported
+XIOS_HOME=/home/jdoe/XIOS
+XIOS_INCDIR="-I$XIOS_HOME/inc"
+XIOS_LIBDIR="-L$XIOS_HOME/lib"
+XIOS_LIB="-lxios -lstdc++"
+
+# Exported
+#OASIS_INCDIR="-I/home/jdoe/oasis3-mct/BLD/include"
+#OASIS_LIBDIR="-L/home/jdoe/oasis3-mct/BLD/lib"
+#OASIS_LIB="-loasis.cbind -lpsmile.MPI1 -lscrip -lmct -lmpeu"
+
+# Exported
+ORCH_INCDIR="-I$(pwd)/../ORCHIDEE/inc -I$(pwd)/../ORCHIDEE/lib"
+ORCH_LIBDIR="-L$(pwd)/../ORCHIDEE/inc -L$(pwd)/../ORCHIDEE/lib"

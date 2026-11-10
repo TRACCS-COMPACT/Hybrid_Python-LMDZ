@@ -1,0 +1,31 @@
+%COMPILER            mpif90
+%CCOMPILER           mpicc  # xios
+%LINK                mpif90
+%FPP                 cpp
+%AR                  ar
+%ARFLAGS             rU
+%MAKE                make
+%FPP_FLAGS           -P -traditional
+%FPP_DEF             NC_DOUBLE
+
+%BASE_FFLAGS         -ffree-line-length-0 -fdefault-real-8 -fallow-argument-mismatch -fimplicit-none
+%BASE_CFLAGS         -w -std=c++11 -D__XIOS_EXCEPTION  # xios
+# /!\ LD must be written in Makefile syntax
+%BASE_LD             -Wl,-rpath=$(shell nf-config --prefix)/lib -lstdc++
+%BASE_INC            -D__NONE__  # xios
+
+%PROD_FFLAGS         -O3 -march=native -fPIC -g -fbacktrace 
+%PROD_CFLAGS         -O3 -DBOOST_DISABLE_ASSERTS  # xios
+
+%DEV_FFLAGS          -Wall -fbounds-check
+%DEV_CFLAGS          -g -O2  # xios
+
+%DEBUG_FFLAGS        -g3 -Wall -fbounds-check -ffpe-trap=invalid,zero,overflow -O0 -fstack-protector-all -fbacktrace -finit-real=snan
+%DEBUG_CFLAGS        -g -DBZ_DEBUG # xios
+
+%MPI_FFLAGS          -fcray-pointer
+%MPI_LD              -L$(shell dirname $(shell readlink -f "$(shell which mpif90)"))/../lib -lmpi
+%OMP_LD              -fopenmp
+%OMP_FFLAGS          -fopenmp -fcray-pointer
+
+%CPP                 cpp  # xios
