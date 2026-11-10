@@ -1,0 +1,144 @@
+<file_definition>
+      <file_group id="defile">
+        <file id="histdayCOSP" name="histdayCOSP" output_freq="1d" output_level="1" type="one_file" enabled=".TRUE." compression_level="2" sync_freq="1d">
+<!-- <variable id="LongName" type="string">LMDZOR configuration</variable> -->
+            <!-- VARS LIDAR -->
+            <field_group operation="average" freq_op="3h" freq_offset="0ts" detect_missing_value=".true.">
+            <!-- VARS CALIPSO -->
+                <field field_ref="cllcalipso"           level="0" />
+                <field field_ref="clmcalipso"           level="1" />
+                <field field_ref="clhcalipso"           level="1" />
+                <field field_ref="cltcalipso"           level="1" />
+                <field field_ref="cllcalipsoice"        level="1" />
+                <field field_ref="clmcalipsoice"        level="1" />
+                <field field_ref="clhcalipsoice"        level="1" />
+                <field field_ref="cltcalipsoice"        level="1" />
+                <field field_ref="cllcalipsoliq"        level="1" />
+                <field field_ref="clmcalipsoliq"        level="1" />
+                <field field_ref="clhcalipsoliq"        level="1" />
+                <field field_ref="cltcalipsoliq"        level="1" />
+                <field field_ref="cllcalipsoun"         level="1" />
+                <field field_ref="clmcalipsoun"         level="1" />
+                <field field_ref="clhcalipsoun"         level="1" />
+                <field field_ref="cltcalipsoun"         level="1" />
+                <field field_ref="clcalipso"            level="1" />
+                <field field_ref="clcalipsoice"         level="1" />
+                <field field_ref="clcalipsoliq"         level="1" />
+                <field field_ref="clcalipsoun"          level="1" />
+                <field field_ref="clcalipsotmp"         level="1" />
+                <field field_ref="clcalipsotmpice"      level="1" />
+                <field field_ref="clcalipsotmpliq"      level="1" />
+                <field field_ref="clcalipsotmpun"       level="1" />
+       		<field field_ref="cfadLidarsr532"       level="1" />
+                <field field_ref="atb532"               level="1" />
+                <field field_ref="lidarBetaMol532"      level="1" />
+                <field field_ref="clopaquecalipso"      level="1" />
+                <field field_ref="clthincalipso"        level="1" />
+                <field field_ref="clzopaquecalipso"     level="1" />
+                <field field_ref="clcalipsoopaque"      level="1" />
+                <field field_ref="clcalipsothin"        level="1" />
+                <field field_ref="clcalipsozopaque"     level="1" />
+                <field field_ref="clcalipsoopacity"     level="1" />
+                <field field_ref="clopaquetemp"         level="1" />
+                <field field_ref="clthintemp"           level="1" />
+                <field field_ref="clzopaquetemp"        level="1" />
+                <field field_ref="clopaquemeanz"        level="1" />
+                <field field_ref="clthinmeanz"          level="1" />
+                <field field_ref="clthinemis"           level="1" />
+                <field field_ref="clopaquemeanzse"      level="1" />
+                <field field_ref="clthinmeanzse"        level="1" />
+                <field field_ref="clzopaquecalipsose"   level="1" />
+            <!-- VARS GROUND LIDAR 532 nm -->
+                <field field_ref="cllgrLidar532"        level="1" />
+                <field field_ref="clmgrLidar532"        level="1" />
+                <field field_ref="clhgrLidar532"        level="1" />
+                <field field_ref="cltgrLidar532"        level="1" />
+                <field field_ref="clgrLidar532"         level="1" />
+       		<field field_ref="cfadLidarsr532gr"     level="1" />
+                <field field_ref="atb532gr"             level="1" />
+                <field field_ref="lidarBetaMol532gr"    level="1" />
+            <!-- VARS ATLID -->
+                <field field_ref="cllatlid"             level="1" />
+                <field field_ref="clmatlid"             level="1" />
+                <field field_ref="clhatlid"             level="1" />
+                <field field_ref="cltatlid"             level="1" />
+                <field field_ref="clatlid"              level="1" />
+       		<field field_ref="cfadLidarsr355"       level="1" />
+                <field field_ref="atb355"               level="1" />
+                <field field_ref="lidarBetaMol355"      level="1" />
+              </field_group>
+             <!-- VARS PARASOL -->
+            <field_group operation="average" freq_op="3h" detect_missing_value=".true.">
+                <field field_ref="parasolPix_refl"      level="1" />
+                <field field_ref="parasolGrid_refl"     level="1" />
+<!--                <field field_ref="Ncrefl"  level="1" /> -->
+              </field_group>
+             <!-- VARS CLOUDSAT et/ou CALIPSO -->
+            <field_group operation="average" freq_op="3h" detect_missing_value=".true."> 
+               <field field_ref="cltlidarradar"         level="1"/>
+               <field field_ref="clcalipso2"            level="1" />
+               <field field_ref="cloudsat_tcc"          level="1" />
+               <field field_ref="cloudsat_tcc2"         level="1" />
+              </field_group>
+             <!-- VARS CLOUDSAT -->
+            <field_group operation="average" freq_op="3h" detect_missing_value=".true."> 
+               <field field_ref="cfadDbze94"            level="1" />
+               <field field_ref="dbze94"                level="1" />
+               <field field_ref="ptradarflag0"          level="1" />
+               <field field_ref="ptradarflag1"          level="1" />
+               <field field_ref="ptradarflag2"          level="1" />
+               <field field_ref="ptradarflag3"          level="1" />
+               <field field_ref="ptradarflag4"          level="1" />
+               <field field_ref="ptradarflag5"          level="1" />
+               <field field_ref="ptradarflag6"          level="1" />
+               <field field_ref="ptradarflag7"          level="1" />
+               <field field_ref="ptradarflag8"          level="1" />
+               <field field_ref="ptradarflag9"          level="1" />
+               <field field_ref="radarpia"              level="1" />
+              </field_group>
+             <!-- VARS ISCCP -->
+            <field_group operation="average" freq_op="3h" detect_missing_value=".true.">
+<!--                <field field_ref="sunlit" level="1" /> -->
+                <field field_ref="clisccp"             level="10" />
+                <field field_ref="boxtauisccp"         level="10" />
+                <field field_ref="boxptopisccp"        level="10" />
+                <field field_ref="cltisccp"            level="10" />
+                <field field_ref="pctisccp"            level="10" />
+                <field field_ref="tauisccp"            level="10" /> 
+                <field field_ref="albisccp"            level="10" />
+                <field field_ref="meantbisccp"         level="10" />
+                <field field_ref="meantbclrisccp"      level="10" />
+             </field_group>
+             <!-- VARS MISR -->
+            <field_group operation="average" freq_op="3h" detect_missing_value=".true.">
+                <field field_ref="misr_fq"             level="10" />
+                <field field_ref="misr_meanztop"       level="10" />
+                <field field_ref="misr_cldarea"        level="10" />
+            </field_group>
+             <!-- VARS MODIS -->
+            <field_group operation="average" freq_op="3h" detect_missing_value=".true.">
+                <field field_ref="cllmodis"            level="10" />
+                <field field_ref="clmmodis"            level="10" />
+                <field field_ref="clhmodis"            level="10" />
+                <field field_ref="cltmodis"            level="10" />
+                <field field_ref="clwmodis"            level="10" />
+                <field field_ref="climodis"            level="10" />
+                <field field_ref="tautmodis"           level="10" />
+                <field field_ref="tauwmodis"           level="10" />
+                <field field_ref="tauimodis"           level="10" />
+                <field field_ref="tautlogmodis"        level="10" />
+                <field field_ref="tauilogmodis"        level="10" />
+                <field field_ref="tauwlogmodis"        level="10" />
+                <field field_ref="reffclwmodis"        level="10" />
+                <field field_ref="reffclimodis"        level="10" />
+                <field field_ref="pctmodis"            level="10" />
+                <field field_ref="lwpmodis"            level="10" />
+                <field field_ref="iwpmodis"            level="10" />
+                <field field_ref="modis_ot_vs_ctp"     level="10" />
+                <field field_ref="modis_ot_vs_reffice" level="10" />
+                <field field_ref="modis_ot_vs_reffliq" level="10" />
+            </field_group>
+
+        </file>
+     </file_group>
+</file_definition>

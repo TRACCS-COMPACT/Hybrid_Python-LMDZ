@@ -1,0 +1,35 @@
+<file_definition>
+        <file_group id="defile">
+        <file id="dynhist_xios" name="dynhist_xios" type="one_file" output_freq="1ts" output_level="5"  enabled="true">
+
+            <!-- VARS 1D -->
+<!--            <field_group operation="once">  -->
+<!--              <field field_ref="Ap" level="1" />  -->
+<!--              <field field_ref="Bp" level="1" />  -->
+<!--              <field field_ref="Alt" level="1" />  -->
+<!--            </field_group>  -->
+
+            <field_group operation="once">
+            </field_group>
+
+            <field_group operation="instant">
+            </field_group>
+
+            <!-- VARS 2D -->
+            <field_group operation="instant" >
+              <field field_ref="PS" level="10" />
+            </field_group>
+            <!-- VARS 3D -->
+            <field_group operation="instant" >
+              <field field_ref="U" level="10" />
+              <field field_ref="V" level="10" />
+              <field field_ref="THETA" level="10" />
+              <field field_ref="TEMP" level="10" />
+              <field field_ref="PHI" level="10" />
+              <field field_ref="MASSE" level="10" />
+            </field_group>
+
+        </file>
+
+        </file_group>
+    </file_definition>

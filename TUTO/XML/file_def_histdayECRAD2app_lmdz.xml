@@ -1,0 +1,111 @@
+<!-- $Id: file_def_histday_lmdz.xml 4482 2023-03-29 13:14:27Z lguez $ -->
+<file_definition type="one_file">
+    <file_group id="defile">
+        <file id="histdayECRAD2app" name="histdayECRAD2app" output_freq="1d" output_level="_AUTO_" type="one_file" enabled=".FALSE." compression_level="2" sync_freq="1d">
+            
+            <!-- VARS 2D -->
+           <field_group group_ref="remap_1d">
+           
+              <field_group operation="average" grid_ref="grid_out" >
+                <field field_ref="phis" level="1" />
+                <field field_ref="aire" level="1" operation="once" />
+                <field field_ref="contfracATM" level="1" operation="once" />
+                <field field_ref="contfracOR" level="1" />
+                <field field_ref="flat" level="1" />
+                <field field_ref="slp" level="1" />
+                <field field_ref="sza" level="1" />
+                <field field_ref="tsol" level="1" />
+                <field field_ref="t2m" level="1" />
+                <field field_ref="precip" level="1" />
+                <field field_ref="rain_fall" level="1" />
+                <field field_ref="rain_con" level="1" />
+                <field field_ref="plul" level="1" />
+                <field field_ref="plun" level="1" />
+                <field field_ref="pluc" level="1" />
+                <field field_ref="snow" level="1" />
+                <field field_ref="evap" level="1" />
+                <field field_ref="tops" level="1" />
+                <field field_ref="tops0" level="1" />
+                <field field_ref="topl" level="1" />
+                <field field_ref="topl0" level="1" />
+                <field field_ref="SWupTOA" level="1" />
+                <field field_ref="SWupTOAclr" level="1" />
+                <field field_ref="SWdnTOA" level="1" />
+                <field field_ref="SWdnTOAclr" level="1" />
+                <field field_ref="sols" level="1" />
+                <field field_ref="sols0" level="1" />
+                <field field_ref="soll" level="1" />
+                <field field_ref="soll0" level="1" />
+                <field field_ref="radsol" level="7" />
+                <field field_ref="SWupSFC" level="1" />
+                <field field_ref="SWupSFCclr" level="1" />
+                <field field_ref="SWdnSFC" level="1" />
+                <field field_ref="SWdnSFCclr" level="1" />
+                <field field_ref="LWupSFC" level="1" />
+                <field field_ref="LWupSFCclr" level="1" />
+                <field field_ref="LWdnSFC" level="1" />
+                <field field_ref="LWdnSFCclr" level="1" />
+                <field field_ref="bils" level="2" />
+                <field field_ref="cldl" level="1" />
+                <field field_ref="cldm" level="1" />
+                <field field_ref="cldh" level="1" />
+                <field field_ref="cldt" level="1" />
+                <field field_ref="cldq" level="1" />
+                <field field_ref="lwp" level="1" />
+                <field field_ref="iwp" level="5" />
+		<field field_ref="cloud_cover_sw_s2" level="1" />
+                <field field_ref="tops_s2" level="1" />
+                <field field_ref="tops0_s2" level="1" />
+                <field field_ref="topl_s2" level="1" />
+                <field field_ref="topl0_s2" level="1" />
+                <field field_ref="SWupTOA_s2" level="1" />
+                <field field_ref="SWupTOAclr_s2" level="1" />
+                <field field_ref="SWdnTOA_s2" level="1" />
+                <field field_ref="SWdnTOAclr_s2" level="1" />
+                <field field_ref="sols_s2" level="1" />
+                <field field_ref="sols0_s2" level="1" />
+                <field field_ref="soll_s2" level="1" />
+                <field field_ref="soll0_s2" level="1" />
+                <field field_ref="SWupSFC_s2" level="1" />
+                <field field_ref="SWupSFCclr_s2" level="1" />
+                <field field_ref="SWdnSFC_s2" level="1" />
+                <field field_ref="SWdnSFCclr_s2" level="1" />
+                <field field_ref="LWupSFC_s2" level="1" />
+                <field field_ref="LWupSFCclr_s2" level="1" />
+                <field field_ref="LWdnSFC_s2" level="1" />
+                <field field_ref="LWdnSFCclr_s2" level="1" />
+              </field_group>
+
+              <!-- VARS 3D -->
+              <field_group operation="average" grid_ref="grid_out_presnivs">
+		<field field_ref="lwcon" level="5" />
+                <field field_ref="iwcon" level="5" />
+                <field field_ref="rneb" level="10" />
+                <field field_ref="dtswr" level="7" />
+                <field field_ref="dtsw0" level="7" />
+                <field field_ref="dtlwr" level="7" />
+                <field field_ref="dtlw0" level="7" />
+              </field_group>
+              <field_group operation="average" grid_ref="grid_out_presinter">
+		<field field_ref="rsucs" level="10" />
+                <field field_ref="rsdcs" level="10" />
+                <field field_ref="rlucs" level="10" />
+                <field field_ref="rldcs" level="10" />
+                <field field_ref="rsu" level="5" />
+                <field field_ref="rsd" level="5" />
+                <field field_ref="rlu" level="5" />
+                <field field_ref="rld" level="5" />
+                <field field_ref="rsucs_s2" level="10" />
+                <field field_ref="rsdcs_s2" level="10" />
+                <field field_ref="rlucs_s2" level="10" />
+                <field field_ref="rldcs_s2" level="10" />
+                <field field_ref="rsu_s2" level="5" />
+                <field field_ref="rsd_s2" level="5" />
+                <field field_ref="rlu_s2" level="5" />
+                <field field_ref="rld_s2" level="5" />
+              </field_group>
+            
+           </field_group>
+        </file>
+    </file_group>
+</file_definition>

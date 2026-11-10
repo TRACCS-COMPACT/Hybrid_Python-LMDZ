@@ -1,0 +1,183 @@
+<!-- $Id$ -->
+<file_definition>
+  <file_group id="defile">
+    <file id="histstrataer" name="histstrataer" output_freq="1mo" output_level="_AUTO_" type="one_file" enabled=".FALSE." compression_level="2">
+      
+      <field_group group_ref="remap_1mo" operation="average">
+	
+        <field_group grid_ref="grid_out"  level="3">
+          <field field_ref="OD443_strat_only" level="2" />
+          <field field_ref="OD550_strat_only" level="1" />
+          <field field_ref="OD670_strat_only" level="2" />
+          <field field_ref="OD765_strat_only" level="2" />
+          <field field_ref="OD1020_strat_only" level="1" />
+          <field field_ref="OD10um_strat_only" level="2" />
+	  <field field_ref="surf_PM25_sulf" level="1" />
+	  <field field_ref="budg_dep_dry_ocs" level="3" />
+	  <field field_ref="budg_dep_wet_ocs" level="3" />
+	  <field field_ref="budg_dep_dry_so2" level="3" />
+	  <field field_ref="budg_dep_wet_so2" level="3" />
+	  <field field_ref="budg_dep_dry_h2so4" level="1" />
+	  <field field_ref="budg_dep_wet_h2so4" level="1" />
+	  <field field_ref="budg_dep_dry_part" level="1" />
+	  <field field_ref="budg_dep_wet_part" level="1" />
+	  <field field_ref="budg_emi_ocs" level="1" />
+	  <field field_ref="budg_emi_so2" level="1" />
+	  <field field_ref="budg_emi_h2so4" level="1" />
+	  <field field_ref="budg_emi_part" level="1" />
+	  <field field_ref="budg_ocs_to_so2" level="1" />
+	  <field field_ref="budg_so2_to_h2so4" level="1" />
+	  <field field_ref="budg_h2so4_to_part" level="1" />
+	  <field field_ref="budg_sed_part" level="1" />
+	  <field field_ref="p_tropopause" level="1" />
+	  <field field_ref="z_tropopause" level="1" />
+	  <field field_ref="t_tropopause" level="3" />
+	</field_group>
+	
+        <field_group grid_ref="grid_out_presnivs" level="5">
+          <field field_ref="ext_strat_443"  level="2" />
+          <field field_ref="ext_strat_550"  level="1" />
+          <field field_ref="ext_strat_670"  level="2" />
+          <field field_ref="ext_strat_765"  level="2" />
+          <field field_ref="ext_strat_1020" level="1" />
+          <field field_ref="ext_strat_10um" level="2" />
+	  <field field_ref="budg_3D_nucl" level="1" />
+	  <field field_ref="budg_3D_cond_evap" level="1" />
+	  <field field_ref="budg_3D_ocs_to_so2" level="1" />
+	  <field field_ref="budg_3D_so2_to_h2so4" level="1" />
+	  <field field_ref="budg_3D_backgr_ocs" level="1" />
+	  <field field_ref="budg_3D_backgr_so2" level="1" />
+	  <field field_ref="R2SO4" level="1" />
+	  <field field_ref="SAD_sulfate" level="1" />
+	  <field field_ref="reff_sulfate" level="1" />
+	  <field field_ref="sulfMMR" level="1" />
+          <field field_ref="SO2_CHLM" level="1" />
+	  <field field_ref="OCS_lifetime" level="1" />
+	  <field field_ref="SO2_lifetime" level="1" />
+	  <field field_ref="vsed_aer" level="2" />
+	  <field field_ref="f_r_wet" level="1" />
+	  <field field_ref="mass" level="1" />
+	  <field field_ref="temp" level="1" />
+	  <field field_ref="pres" level="1" />
+          <field field_ref="h2o"  level="1" />
+	  <field field_ref="dqch4" level="1" />
+	  
+          <field field_ref="BIN01" level="1" />
+          <field field_ref="BIN02" level="1" />
+          <field field_ref="BIN03" level="1" />
+          <field field_ref="BIN04" level="1" />
+          <field field_ref="BIN05" level="1" />
+          <field field_ref="BIN06" level="1" />
+          <field field_ref="BIN07" level="1" />
+          <field field_ref="BIN08" level="1" />
+          <field field_ref="BIN09" level="1" />
+          <field field_ref="BIN10" level="1" />
+          <field field_ref="BIN11" level="1" />
+          <field field_ref="BIN12" level="1" />
+          <field field_ref="BIN13" level="1" />
+          <field field_ref="BIN14" level="1" />
+          <field field_ref="BIN15" level="1" />
+          <field field_ref="BIN16" level="1" />
+          <field field_ref="BIN17" level="1" />
+          <field field_ref="BIN18" level="1" />
+          <field field_ref="BIN19" level="1" />
+          <field field_ref="BIN20" level="1" />
+          <field field_ref="BIN21" level="1" />
+          <field field_ref="BIN22" level="1" />
+          <field field_ref="BIN23" level="1" />
+          <field field_ref="BIN24" level="1" />
+          <field field_ref="BIN25" level="1" />
+          <field field_ref="BIN26" level="1" />
+          <field field_ref="BIN27" level="1" />
+          <field field_ref="BIN28" level="1" />
+          <field field_ref="BIN29" level="1" />
+          <field field_ref="BIN30" level="1" />
+          <field field_ref="BIN31" level="1" />
+          <field field_ref="BIN32" level="1" />
+          <field field_ref="BIN33" level="1" />
+          <field field_ref="BIN34" level="1" />
+          <field field_ref="BIN35" level="1" />
+          <field field_ref="BIN36" level="1" />
+	  <field field_ref="GASOCS"  level="1" />
+	  <field field_ref="GASSO2"  level="1" />
+	  <field field_ref="GASH2SO4"  level="1" />
+	  
+          <field field_ref="BIN01_nd_mode" level="2" />
+          <field field_ref="BIN02_nd_mode" level="2" />
+          <field field_ref="BIN03_nd_mode" level="2" />
+          <field field_ref="BIN04_nd_mode" level="2" />
+          <field field_ref="BIN05_nd_mode" level="2" />
+          <field field_ref="BIN06_nd_mode" level="2" />
+          <field field_ref="BIN07_nd_mode" level="2" />
+          <field field_ref="BIN08_nd_mode" level="2" />
+          <field field_ref="BIN09_nd_mode" level="2" />
+          <field field_ref="BIN10_nd_mode" level="2" />
+          <field field_ref="BIN11_nd_mode" level="2" />
+          <field field_ref="BIN12_nd_mode" level="2" />
+          <field field_ref="BIN13_nd_mode" level="2" />
+          <field field_ref="BIN14_nd_mode" level="2" />
+          <field field_ref="BIN15_nd_mode" level="2" />
+          <field field_ref="BIN16_nd_mode" level="2" />
+          <field field_ref="BIN17_nd_mode" level="2" />
+          <field field_ref="BIN18_nd_mode" level="2" />
+          <field field_ref="BIN19_nd_mode" level="2" />
+          <field field_ref="BIN20_nd_mode" level="2" />
+          <field field_ref="BIN21_nd_mode" level="2" />
+          <field field_ref="BIN22_nd_mode" level="2" />
+          <field field_ref="BIN23_nd_mode" level="2" />
+          <field field_ref="BIN24_nd_mode" level="2" />
+          <field field_ref="BIN25_nd_mode" level="2" />
+          <field field_ref="BIN26_nd_mode" level="2" />
+          <field field_ref="BIN27_nd_mode" level="2" />
+          <field field_ref="BIN28_nd_mode" level="2" />
+          <field field_ref="BIN29_nd_mode" level="2" />
+          <field field_ref="BIN30_nd_mode" level="2" />
+          <field field_ref="BIN31_nd_mode" level="2" />
+          <field field_ref="BIN32_nd_mode" level="2" />
+          <field field_ref="BIN33_nd_mode" level="2" />
+          <field field_ref="BIN34_nd_mode" level="2" />
+          <field field_ref="BIN35_nd_mode" level="2" />
+          <field field_ref="BIN36_nd_mode" level="2" />
+	  
+          <field field_ref="BIN01_sulfmmr_mode" level="2" />
+          <field field_ref="BIN02_sulfmmr_mode" level="2" />
+          <field field_ref="BIN03_sulfmmr_mode" level="2" />
+          <field field_ref="BIN04_sulfmmr_mode" level="2" />
+          <field field_ref="BIN05_sulfmmr_mode" level="2" />
+          <field field_ref="BIN06_sulfmmr_mode" level="2" />
+          <field field_ref="BIN07_sulfmmr_mode" level="2" />
+          <field field_ref="BIN08_sulfmmr_mode" level="2" />
+          <field field_ref="BIN09_sulfmmr_mode" level="2" />
+          <field field_ref="BIN10_sulfmmr_mode" level="2" />
+          <field field_ref="BIN11_sulfmmr_mode" level="2" />
+          <field field_ref="BIN12_sulfmmr_mode" level="2" />
+          <field field_ref="BIN13_sulfmmr_mode" level="2" />
+          <field field_ref="BIN14_sulfmmr_mode" level="2" />
+          <field field_ref="BIN15_sulfmmr_mode" level="2" />
+          <field field_ref="BIN16_sulfmmr_mode" level="2" />
+          <field field_ref="BIN17_sulfmmr_mode" level="2" />
+          <field field_ref="BIN18_sulfmmr_mode" level="2" />
+          <field field_ref="BIN19_sulfmmr_mode" level="2" />
+          <field field_ref="BIN20_sulfmmr_mode" level="2" />
+          <field field_ref="BIN21_sulfmmr_mode" level="2" />
+          <field field_ref="BIN22_sulfmmr_mode" level="2" />
+          <field field_ref="BIN23_sulfmmr_mode" level="2" />
+          <field field_ref="BIN24_sulfmmr_mode" level="2" />
+          <field field_ref="BIN25_sulfmmr_mode" level="2" />
+          <field field_ref="BIN26_sulfmmr_mode" level="2" />
+          <field field_ref="BIN27_sulfmmr_mode" level="2" />
+          <field field_ref="BIN28_sulfmmr_mode" level="2" />
+          <field field_ref="BIN29_sulfmmr_mode" level="2" />
+          <field field_ref="BIN30_sulfmmr_mode" level="2" />
+          <field field_ref="BIN31_sulfmmr_mode" level="2" />
+          <field field_ref="BIN32_sulfmmr_mode" level="2" />
+          <field field_ref="BIN33_sulfmmr_mode" level="2" />
+          <field field_ref="BIN34_sulfmmr_mode" level="2" />
+          <field field_ref="BIN35_sulfmmr_mode" level="2" />
+          <field field_ref="BIN36_sulfmmr_mode" level="2" />
+	</field_group>
+	
+      </field_group> 
+    </file>
+  </file_group>
+</file_definition>

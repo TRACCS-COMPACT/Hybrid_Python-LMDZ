@@ -1,0 +1,99 @@
+<file_definition>
+     <file_group id="defile">
+        <file id="histmthCOSP" name="histmthCOSP" output_freq="1mo" output_level="_AUTO_"  type="one_file" enabled=".FALSE." compression_level="2">
+
+            <field_group group_ref="remap_1mo">
+            
+            <!-- VARS Calipso and PARASOL -->
+              <field_group operation="average" freq_op="3h" detect_missing_value=".true." >
+                <field field_ref="cllcalipso"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clmcalipso"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clhcalipso"         level="5" grid_ref="grid_out"/>
+                <field field_ref="cltcalipso"         level="5" grid_ref="grid_out"/>
+                <field field_ref="cllcalipsoice"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clmcalipsoice"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clhcalipsoice"         level="5" grid_ref="grid_out"/>
+                <field field_ref="cltcalipsoice"         level="5" grid_ref="grid_out"/>
+                <field field_ref="cllcalipsoliq"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clmcalipsoliq"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clhcalipsoliq"         level="5" grid_ref="grid_out"/>
+                <field field_ref="cltcalipsoliq"         level="5" grid_ref="grid_out"/>
+                <field field_ref="cllcalipsoun"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clmcalipsoun"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clhcalipsoun"         level="5" grid_ref="grid_out"/>
+                <field field_ref="cltcalipsoun"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clcalipso"  level="5" grid_ref="grid_out_height"/>
+                <field field_ref="clcalipsoice"  level="5" grid_ref="grid_out_height"/>
+                <field field_ref="clcalipsoliq"  level="5" grid_ref="grid_out_height"/>
+                <field field_ref="clcalipsoun"  level="5" grid_ref="grid_out_height"/>
+                <field field_ref="clcalipsotmp"  level="5" grid_ref="grid_out_temp"/>
+                <field field_ref="clcalipsotmpice"  level="5" grid_ref="grid_out_temp"/>
+                <field field_ref="clcalipsotmpliq"  level="5" grid_ref="grid_out_temp"/>
+                <field field_ref="clcalipsotmpun"  level="5" grid_ref="grid_out_temp"/>
+                <field field_ref="parasol_refl"  level="5" grid_ref="grid_out_sza"/>
+                <field field_ref="parasol_crefl"  level="5" grid_ref="grid_out_sza"/>
+                <field field_ref="Ncrefl"  level="5" grid_ref="grid_out_sza"/>
+		<field field_ref="cfad_lidarsr532"  level="10" grid_ref="grid4Dsrbin_out"/>
+                <field field_ref="atb532" level="10" grid_ref="grid4Dcol_out"/>
+                <field field_ref="beta_mol532" level="10" grid_ref="grid_out_heightmlev"/>
+                <field field_ref="clopaquecalipso"       level="5" grid_ref="grid_out"/>
+                <field field_ref="clthincalipso"         level="5" grid_ref="grid_out"/>
+                <field field_ref="clzopaquecalipso"      level="5" grid_ref="grid_out"/>
+                <field field_ref="clcalipsoopaque"   level="5" grid_ref="grid_out_height"/>
+                <field field_ref="clcalipsothin"     level="5" grid_ref="grid_out_height"/>
+                <field field_ref="clcalipsozopaque"  level="5" grid_ref="grid_out_height"/>
+                <field field_ref="clcalipsoopacity"  level="5" grid_ref="grid_out_height"/>
+                <field field_ref="proftemp"  level="5" grid_ref="grid_out_height"/>
+                <field field_ref="profSR"  level="5" grid_ref="grid4Dcol2_out"/>
+              </field_group>
+             <!-- VARS CLOUDSAT et/ou Calipso -->
+              <field_group operation="instant" freq_op="3h" detect_missing_value=".true.">                        
+                 <field field_ref="cltlidarradar"  level="5" grid_ref="grid_out"/>
+                 <field field_ref="clcalipso2"  level="5" grid_ref="grid_out_height"/>
+                 <field field_ref="cfadDbze94"  level="10" grid_ref="grid4Ddbze_out"/>
+                 <field field_ref="dbze94" level="10" grid_ref="grid4Dcol_out"/>
+              </field_group>
+             <!-- VARS ISCCP -->
+             <field_group operation="instant" freq_op="3h" detect_missing_value=".true.">
+                <field field_ref="sunlit" level="5" grid_ref="grid_out"/>
+                <field field_ref="clisccp2" level="5" grid_ref="grid4Dtau_out"/>
+                <field field_ref="boxtauisccp" level="10" grid_ref="grid_out_column"/>
+                <field field_ref="boxptopisccp" level="10" grid_ref="grid_out_column"/>
+                <field field_ref="tclisccp" level="5" grid_ref="grid_out"/>
+                <field field_ref="ctpisccp" level="5" grid_ref="grid_out"/>
+                <field field_ref="tauisccp" level="5" grid_ref="grid_out"/> 
+                <field field_ref="albisccp" level="5" grid_ref="grid_out"/>
+                <field field_ref="meantbisccp" level="10" grid_ref="grid_out"/>
+                <field field_ref="meantbclrisccp" level="10" grid_ref="grid_out"/>
+              </field_group>
+             <!-- VARS MISR -->
+             <field_group operation="instant" freq_op="3h" detect_missing_value=".true.">
+                <field field_ref="clMISR" level="5" grid_ref="grid4Dmisr_out"/>
+             </field_group>
+             <field_group operation="instant" freq_op="3h" detect_missing_value=".true.">
+                <field field_ref="cllmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="clmmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="clhmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="cltmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="clwmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="climodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="tautmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="tauwmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="tauimodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="tautlogmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="tauilogmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="tauwlogmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="reffclwmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="reffclimodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="pctmodis"  level="5" grid_ref="grid_out"/>
+                <field field_ref="lwpmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="iwpmodis" level="5" grid_ref="grid_out"/>
+                <field field_ref="clmodis" level="5" grid_ref="grid4Dtau_out"/>
+                <field field_ref="crimodis" level="10" grid_ref="grid4Dreffi_out"/>
+                <field field_ref="crlmodis" level="10" grid_ref="grid4Dreffl_out"/>
+             </field_group>
+           </field_group> 
+        </file>
+     </file_group>
+</file_definition>
+   

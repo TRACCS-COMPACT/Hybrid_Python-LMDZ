@@ -1,0 +1,33 @@
+<file_definition>
+    <file_group id="defile">
+        <file id="histmthNMC" name="histmthNMC" output_freq="1mo" output_level="_AUTO_" type="one_file" enabled=".FALSE." compression_level="2">
+
+            <field_group group_ref="remap_1mo">
+
+            <!-- VARS 3D -->
+              <field_group operation="average" grid_ref="grid_out_plev" freq_op="1ts" detect_missing_value=".true.">
+<!--            <field field_ref="tnondef" level="5" />  -->
+                <field field_ref="ta" level="1" />
+                <field field_ref="zg" level="5" />
+                <field field_ref="hus" level="5" />
+                <field field_ref="hur" level="5" />
+                <field field_ref="ua" level="5" />
+                <field field_ref="va" level="5" />
+                <field field_ref="wap" level="5" />
+<!--            <field field_ref="psbg" level="5" />  -->
+                <field field_ref="tro3" level="5" />
+                <field field_ref="tro3_daylight" level="5" />
+                <field field_ref="uv" level="6" />
+                <!-- <field field_ref="vq" level="6" /> -->
+                <field field_ref="vT" level="6" />
+                <field field_ref="wq" level="6" />
+                <field field_ref="vphi" level="6" />
+                <field field_ref="wT" level="6" />
+                <field field_ref="u2" level="6" />
+                <field field_ref="v2" level="6" />
+                <field field_ref="T2" level="6" />
+              </field_group>
+            </field_group>
+        </file>
+    </file_group>
+</file_definition>
