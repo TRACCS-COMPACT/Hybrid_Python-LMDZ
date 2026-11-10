@@ -21,4 +21,4 @@ LMDZ tutorial BENCH case coupled with Python toolboxes for online diagnostics: `
 
 LMDZ-GCM96x95-Wind_Bias_Corr
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-General atmospheric circulation case nudged with data-driven winds bias corrections: `LMZ-GCM96x95-Wind_Bias_Corr <https://github.com/TRACCS-COMPACT/LMDZ-GCM96x95-Wind_Bias_Corr>`_
+General atmospheric circulation nudged with data-driven winds bias corrections: `LMZ-GCM96x95-Wind_Bias_Corr <https://github.com/TRACCS-COMPACT/LMDZ-GCM96x95-Wind_Bias_Corr>`_

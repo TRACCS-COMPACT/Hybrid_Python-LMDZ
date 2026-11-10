@@ -22,14 +22,9 @@ New experiment
 
 All hybrid LMDZ use cases are stored in separate repositories. Those are named with a simple convention ``<LMDZ_CODE>-<EXPERIMENT>`` and must be structured and filled in accordance with the project norms.
 
-Repository templates for each code are provided to help you:
-    - `LMDZ template <https://github.com/TRACCS-COMPACT/LMDZ-EXP_template>`_
+A repository template is provided to help you. It mentions NEMO but the structure is the same:
+    - `GCM repo template <https://github.com/morays-community/NEMO-EXP_template>`_
 
-Choose the template corresponding to the code with which you performed your test case. Click on "Use this template" green button and choose "Create a new repository." Name it with the abovementioned convention.
-
-.. image:: images/repo_template.png
-   :width: 800px
-   :align: center
 
 Note that the repository contains a ``README`` and pre-defined directories.
 
@@ -39,7 +34,7 @@ Note that the repository contains a ``README`` and pre-defined directories.
 
 ``README`` file of the repository is here to give informations on the scientific and software environments. Simply follow the instructions given in the ``README`` to fill it.
 
-Requirements section of the ``README`` is the most important because it indicates what softwares to use. Potential patches and adjustments must be described here to ensure reproducibility.
+Requirements section of the ``README`` is the most important because it indicates the softwares to use. Potential patches and adjustments must be described here to ensure reproducibility.
 
 Software requirements may be sorted in four categories:
     - **Compilation:** code version to compile and with which potential additionnal material

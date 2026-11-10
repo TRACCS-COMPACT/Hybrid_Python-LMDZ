@@ -1,18 +1,18 @@
-NEMO5 for Morays
-================
+LMDZ for hybrid modelling
+=========================
 
 .. toctree::
    :maxdepth: 2
 
-Let's recall that a Morays experiment is an ocean simulation that exchanges fields with an external Python script through OASIS3-MCT. The strategy is to deploy the OASIS3-MCT interface in the Python side and configure the global coupling environment with help of the Eophis library.
+Let's recall that a hybrid LMDZ experiment is an atmospheric simulation that exchanges fields with an external Python script through OASIS3-MCT. The strategy is to deploy the OASIS3-MCT interface on the Python side and configure the global coupling environment with help of the Eophis library.
 
-From this point, we consider that all the Python material is already well configured. See `Eophis documentation <https://eophis.readthedocs.io/en/latest/>`_ or this `tutorial <https://eophis.readthedocs.io/en/latest/tutorial.html>`_ for more details. What remains now is to configure the OASIS3-MCT interface of NEMO in accordance with Eophis. This is described in this section.
+From this point, we consider that all the Python material is already well configured. See `Eophis documentation <https://eophis.readthedocs.io/en/latest/>`_ or this `tutorial <https://eophis.readthedocs.io/en/latest/tutorial.html>`_ for more details. What remains now is to configure the OASIS3-MCT interface on LMDZ side in accordance with Eophis. This is described in this section.
 
 
-.. important:: `NEMO-ORCA2_MLE <https://github.com/morays-community/NEMO-ORCA2_MLE>`_ experiment uses NEMO5.
+.. important:: This documentation is valid for LMDZ6.
 
 .. note ::
-    - **Developer guide** describes how to build a NEMO5 communication module from scratch.
+    - **Developer guide** describes how to build a LMDZ6 communication module from scratch.
 
     - **User guide** describes a provided ready-to-use communication module -- **recommended**.
 
@@ -21,24 +21,27 @@ From this point, we consider that all the Python material is already well config
 Developer guide
 ---------------
 
-Section **NEMO4 for Morays** explains that NEMO4 needs modifications from `Morays patches <https://github.com/morays-community/Patches-NEMO/>`_ to enable use of OASIS3-MCT for new coupling modules. This is not required anymore in NEMO5 since modifications have been integrated with the release. However, modifications are slightly different compared to NEMO4. We describe here how to use the modified OASIS3-MCT interface to create a new NEMO5 module dedicated to Python communication.
-
+We describe here how to use the OASIS3-MCT interface within LMDZ6 to build a whole new module dedicated to external communication, here Python.
 
 Modified OASIS3-MCT interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Coupling properties of the fields to send and receive are stored in ``ssnd`` and ``srcv`` arrays, respectively. Flexibility of OASIS3-MCT in NEMO5 relies on an extra dimension in ``ssnd`` and ``srcv`` to sort coupling fields properties between the modules that are using the OASIS3-MCT interface.
+Current LMDZ releases do include an OASIS3-MCT module. However, it is restricted for coupling the surface boundary condition only. Modifications of the LMDZ6 sources are required to make it usable for other coupling purposes.
 
-However, some modules will manipulate more fields than others and, in some configuration, not all modules might be used. To optimize memory, ``ssnd`` and ``srcv`` are now variables that allows to create batches of coupling properties arrays. This way, it is possible to allocate different array sizes according to the modules. For example:
+
+TRACCS-COMPACT provides `patches <https://github.com/TRACCS-COMPACT/Hybrid_Python-LMDZ/tree/main/LMDZ_Patches>`_ with the abovementionned modifications of the LMDZ code. More details about modifications are available `here <https://github.com/TRACCS-COMPACT/Hybrid_Python-LMDZ/blob/main/LMDZ_Patches/README.md>`_. As a user, you just need to copy them in the ``libf`` directory of LMDZ6.
+
+
+Coupling properties of the fields to send and receive are stored in ``infosend`` and ``inforecv`` arrays, respectively. Flexibility of OASIS3-MCT in LMDZ6 relies on an extra dimension in ``infosend`` and ``inforecv`` to sort coupling fields properties between the modules that are using the OASIS3-MCT interface. To optimize memory, ``infosend`` and ``inforecv`` are variables that allows to create batches of coupling properties arrays. This way, it is possible to allocate different array sizes according to the modules. For example:
 
 .. code-block :: Fortran
 
-    ssnd( mod_ID_1 )%fld( field_ID_1 )%field_property_1
-    srcv( mod_ID_1 )%fld( field_ID_2 )%field_property_2
-    ssnd( mod_ID_2 )%fld( field_ID_3 )%field_property_3
+    infosend( mod_ID_1 )%fld( field_ID_1 )%field_property_1
+    inforecv( mod_ID_1 )%fld( field_ID_2 )%field_property_2
+    infosend( mod_ID_2 )%fld( field_ID_3 )%field_property_3
 
 
-- First level dimension of ``ssnd / srcv`` corresponds to module IDs. It is automatically allocated if OASIS3-MCT key is activated.
+- First level dimension of ``infosend / inforecv`` corresponds to module IDs. It is automatically allocated.
 
 - Second level dimension corresponds to IDs of coupled fields you wish the module to manage. This dimension is not allocated by default to save memory.
 
@@ -46,53 +49,64 @@ However, some modules will manipulate more fields than others and, in some confi
 Register a new module
 ~~~~~~~~~~~~~~~~~~~~~
 
-The first thing to do is to register your module ID in the ``cpl_oasis3.F90`` global parameters:
+The first thing to do is to register your module ID in the ``oasis.F90`` global parameters:
 
 .. code-block :: Fortran
 
-    vi cpl_oasis3.F90
+    vi oasis3.F90
     ##   [...]
-    92   INTEGER, PUBLIC, PARAMETER ::   nmodmax=2    ! Maximum number of identified modules
-    93   INTEGER, PUBLIC, PARAMETER ::   nmodsbc=1    ! module ID #1 : surface boundary condition
-    94   INTEGER, PUBLIC, PARAMETER ::   nmodext=2    ! module ID #2 : external communication module
+    33  INTEGER, PUBLIC, PARAMETER ::   midmax=2    ! Maximum number of identified modules
+    34  INTEGER, PUBLIC, PARAMETER ::   midcpl=1    ! module ID #1 : ocean coupling
+    35  INTEGER, PUBLIC, PARAMETER ::   midpycpl=2  ! module ID #2 : Eophis-equipped external python scripts
 
 In this example, two modules are registered:
-    1. SBC module used by NEMO to couple with atmosphere
-    2. EXT module used in Morays framework to couple Python script
+    1. A module used by LMDZ to couple with ocean
+    2. A module used in the Eophis and OASIS3-MCT framework to couple Python script
 
 
-Each time a module calls the OASIS3-MCT routines within NEMO, the ID of the calling module must be passed as argument. Set an ID for your new module and create it. Then, import the OASIS3-MCT module:
+Each time a module calls the OASIS3-MCT routines within LMDZ, the ID of the calling module must be passed as argument. Set an ID for your new module and create it. Then, import the OASIS3-MCT module:
 
 .. code-block :: fortran
 
-    USE cpl_oasis3
+    USE oasis
 
 
 
 Define coupled fields
 ~~~~~~~~~~~~~~~~~~~~~
 
-As in many codes, your module must contain an initialization routine in which the coupling properties of the exchanged fields are defined. All initialization routines that use the OASIS3-MCT interface must be called during the NEMO general initialization phase in ``nemogcm.F90``, after ``cpl_domain()`` and before ``cpl_define()``. For example:
+As in many codes, your module must contain an initialization routine in which the coupling properties of the exchanged fields are defined. All initialization routines that use the OASIS3-MCT interface must be called during the LMDZ physics core initialization phase in ``phyetat0_mod.f90``, after ``cpl_def_domain()`` and before ``cpl_enddef()``. For example:
 
 
 .. code-block:: fortran
 
-    vi nemogcm.F90
+    vi phyetat0_mod.d90
     ###  [...]
-    391  IF ( lk_oasis )  CALL  cpl_domain                   ! Define coupling domain for oasis
-    ###  [...]
-    444                   CALL  sbc_init( Nbb, Nnn, Naa )    ! SBC : surface boundary conditions
-    445                   CALL  bdy_init                     ! Open boundaries
-    446                   CALL  extcom_init                  ! init external coupled model
-    447  IF ( lk_oasis )  CALL  cpl_define                   ! setup coupling environment
+    761  ! --------- COUPLING SECTION --------
+    762  ! Initialize coupling module
+    763  IF ( type_ocean == 'couple' .OR. lk_pycpl ) CALL cpl_def_domain()
+    764
+    765  ! Initialize module ocean_cpl_mod for the case of coupled ocean
+    766  IF ( type_ocean == 'couple' ) THEN
+    767     CALL ocean_cpl_init(phys_tstep, longitude_deg, latitude_deg)
+    768  ENDIF
+    769
+    770  ! Initialize python communication module
+    771  IF ( lk_pycpl ) THEN
+    772     CALL pyfld_alloc()
+    773     CALL init_python_coupling()
+    774  ENDIF
+    775
+    776  ! Finalize coupling definition
+    777  IF ( type_ocean == 'couple' .OR. lk_pycpl ) CALL cpl_enddef()
 
 
-Main purpose of the initialization routine is to fill ``ssnd`` and ``srcv`` second-level array. Second-level dimension must be first allocated in accordance with the number of coupling fields you wish your module to manage:
+Main purpose of the initialization routine is to fill ``infosend`` and ``inforecv`` second-level array. Second-level dimension must be first allocated in accordance with the number of coupling fields you wish your module to manage:
 
 .. code-block :: Fortran
 
-    ALLOCATE( srcv(nmodext)%fld( jpr_ext ) )
-    ALLOCATE( ssnd(nmodext)%fld( jps_ext ) )
+    ALLOCATE( inforecv(midpycpl)%fld( jpr_ext ) )
+    ALLOCATE( infosend(midpycpl)%fld( jps_ext ) )
 
 IDs of the coupled fields are locally defined by the considered module, proceed as you prefer.
 
@@ -101,91 +115,83 @@ Each identified field in the second-level array has a list of attributes to fill
 
 .. code-block:: fortran
 
-    TYPE, PUBLIC ::   FLD_CPL               !: Type for coupled field informations
-       LOGICAL               ::   laction   ! To be coupled or not
-       CHARACTER(len = 8)    ::   clname    ! Field alias used by OASIS
-       CHARACTER(len = 1)    ::   clgrid    ! Grid type
-       REAL(wp)              ::   nsgn      ! Control of the sign change
-       INTEGER, DIMENSION(nmaxcat,nmaxcpl) ::   nid   ! Id of the field (no more than 9 categories and 9 extrena models)
-       INTEGER               ::   nct       ! Number of categories in field
-       INTEGER               ::   ncplmodel ! Maximum number of models to/from which this variable may be sent/received
-       INTEGER               ::   nlvl      ! Number of grid level to exchange, set 1 for 2D fields
+    TYPE, PUBLIC ::   FLD_CPL            ! Type for coupling field information
+        CHARACTER(len = 8) ::   name      ! Name of the coupling field
+        LOGICAL            ::   action    ! To be exchanged or not
+        INTEGER            ::   nid       ! Id of the field
+        INTEGER            ::   nlvl      ! Number of level to exchange
     END TYPE FLD_CPL
 
 
 Longitude and latitude sizes of the field do not need to be specified. It is automatically done during the initialization of the OASIS3-MCT environment. Exchange frequencies do not need to be specified either since they are managed by Eophis.
 
-For instance, here are the properties for two variables ``u`` and ``u_f`` whose IDs are ``jps_ssu`` and ``jpr_uf``. They are defined in the communication module whose ID is ``nmodext``.
+For instance, here are the properties for two variables ``u`` and ``u_f`` whose IDs are ``jps_su`` and ``jpr_uf``. They are defined in the communication module whose ID is ``midpycpl``.
 
 .. code-block:: fortran
 
-    ! default values for ssnd and srcv batches
-    srcv(nmodext)%fld(:)%laction = .FALSE.  ;  srcv(nmodext)%fld(:)%clgrid = 'T'  ;  srcv(nmodext)%fld(:)%nsgn = 1.
-    srcv(nmodext)%fld(:)%nct = 1  ;  srcv(nmodext)%fld(:)%nlvl = 1
+    ! default values for infosend and inforecv batches
+    infosend(midpycpl)%fld(:)%action = .FALSE.  ;  infosend(midpycpl)%fld(:)%name = ''  ;  infosend(midpycpl)%fld(:)%nlvl = 1
+    inforecv(midpycpl)%fld(:)%action = .FALSE.  ;  inforecv(midpycpl)%fld(:)%name = ''  ;  inforecv(midpycpl)%fld(:)%nlvl = 1
     !
-    ssnd(nmodext)%fld(:)%laction = .FALSE.  ;  ssnd(nmodext)%fld(:)%clgrid = 'T'  ;  ssnd(nmodext)%fld(:)%nsgn = 1.
-    ssnd(nmodext)%fld(:)%nct = 1  ;  ssnd(nmodext)%fld(:)%nlvl = 1
-
-    ! Properties for sending 2D surface U-velocity : "u" in Eophis
-    ssnd( nmodext )%fld( jps_ssu )%clname = 'E_OUT_0'
-    ssnd( nmodext )%fld( jps_ssu )%laction = .TRUE.
-    ssnd( nmodext )%fld( jps_ssu )%clgrid = 'U'
+    ! Properties for sending 2D U-velocity : "u" in Eophis
+    infosend( midpycpl )%fld( jps_su )%name = 'E_OUT_0'
+    infosend( midpycpl )%fld( jps_su )%action = .TRUE.
       
     ! Properties for receiving 2D forcing term on U-grid : "u_f" in Eophis
-    srcv( nmodext )%fld( jpr_uf )%clname = 'E_IN_0'
-    srcv( nmodext )%fld( jpr_uf )%laction = .TRUE.
-    srcv( nmodext )%fld( jpr_uf )%clgrid = 'U'
+    inforecv( midpycpl )%fld( jpr_uf )%name = 'E_IN_0'
+    inforecv( midpycpl )%fld( jpr_uf )%action = .TRUE.
 
 
-The attribute ``clname`` corresponds to the alias that OASIS3-MCT uses to perform the communications. ``u_f`` is manipulated by OASIS3-MCT under ``E_IN_0`` from the NEMO side and under another name from the Python side. Those aliases are used in the OASIS3-MCT namelist. ``clname`` must absolutely be in accordance with the content of the OASIS3-MCT namelist.
+The attribute ``name`` corresponds to the alias that OASIS3-MCT uses to perform the communications. ``u_f`` is manipulated by OASIS3-MCT under ``E_IN_0`` from the LMDZ side and under another name from the Python side. Those aliases are used in the OASIS3-MCT namelist. ``name`` must absolutely be in accordance with the content of the OASIS3-MCT namelist.
 
 .. note:: Eophis provides useful `tools <https://eophis.readthedocs.io/en/latest/usage.html#oasis-namcouple>`_ to know and manipulate OASIS3-MCT aliases.
 
 
-Once ``ssnd`` and ``srcv`` have been correctly filled. Finalize fields registration with:
+Once ``infosend`` and ``inforecv`` have been correctly filled. Finalize fields registration with:
 
 .. code-block:: fortran
 
-    CALL cpl_var( krcv, ksnd, kcplmodel, kmod)
-    ! INTEGER :: krcv      ! number of fields to receive for current module
-    ! INTEGER :: ksnd      ! number of fields to send for current module
-    ! INTEGER :: kcplmodel ! Maximum number of models to/from which NEMO is potentialy sending/receiving data
+    CALL cpl_vardef( kmod )
     ! INTEGER :: kmod      ! calling module ID
 
-
-.. code-block:: fortran
-
-    ! For above u and u_f examples
-    CALL cpl_var( 1, 1, 1, nmodext )
+    ! For above example
+    CALL cpl_var( midpycpl )
 
 
 
 Send a field
 ~~~~~~~~~~~~
 
-During a time iteration, a coupled field can be sent with this function:
+During a physics core time iteration only, a coupled field can be sent with this function:
 
 .. code-block:: fortran
 
-    CALL cpl_snd( kmod, kid, kstep, pdata, kinfo)
+    CALL cpl_snd( kmod, kid, kstep, pdata )
     ! INTEGER                :: kmod   ! calling module ID
-    ! INTEGER                :: kid    ! field index in ssnd for calling module
-    ! INTEGER                :: kstep  ! ocean time-step in second
-    ! REAL, DIMENSION(:,:,:) :: pdata  ! field to send (shape is (:,:,1) for 2D)
-    ! INTEGER                :: kinfo  ! OAIS3 info argument
+    ! INTEGER                :: kid    ! field index in infosend for calling module
+    ! INTEGER                :: kstep  ! physics time-step in second
+    ! REAL, DIMENSION(:,:)   :: pdata  ! field to send (shape is (:,1) for 2D)
 
-The ``pdata`` shape must be equivalent to the NEMO longitude and latitude grid sizes **without halos** for the two first dimensions. The third dimension is compulsory even for 2D fields and must be at least equal to the ``nlvl`` value defined during initialization.
+The ``pdata`` shape must be equivalent to the horizontal flattened OMP-gathered LMDZ physics grid size for the first dimension. The second dimension is compulsory even for 2D fields and must be at least equal to the ``nlvl`` value defined during initialization.
 
 .. code-block:: fortran
 
-    ! Example to send surface of "u"
-    USE oce ! to get u velocity field uu
+    ! Example to send a 2D array named to_send, as "u"
     ## [...]
-    INTEGER :: isec, info
+    REAL, DIMENSION(nbp_lon*jj_nb,1) :: to_send
+    INTEGER :: isec
     
-    isec = ( kt - nit000 ) * NINT( rn_Dt )
-    info = OASIS_idle
-    CALL cpl_snd( nmodext, jps_ssu, isec, uu(A2D(0),1:1,Kbb), info )
+    ! Array bounds
+    kstart = ii_begin
+    IF (is_south_pole_dyn) THEN
+        kend = (jj_end-jj_begin)*nbp_lon + nbp_lon
+    ELSE
+        kend = (jj_end - jj_begin)*nbp_lon + ii_end
+    ENDIF
+    
+    isec = ( itap - 1 ) * phys_tstep
+    
+    CALL cpl_snd(midpycpl, jps_su, isec, zbuf(kstart:kend,:))
 
 
 
@@ -193,59 +199,51 @@ The ``pdata`` shape must be equivalent to the NEMO longitude and latitude grid s
 Receive a field
 ~~~~~~~~~~~~~~~
 
-During a time iteration, a coupled field can be received with this function:
+During a physics core time iteration only, a coupled field can be received with this function:
 
 .. code-block:: fortran
 
-    CALL cpl_rcv( kmod, kid, kstep, pdata, kinfo, pmask)
+    CALL cpl_rcv( kmod, kid, kstep, pdata )
     ! INTEGER                :: kmod   ! calling module ID
-    ! INTEGER                :: kid    ! field index in srcv for calling module
+    ! INTEGER                :: kid    ! field index in inforecv for calling module
     ! INTEGER                :: kstep  ! ocean time-step in second
-    ! INTEGER                :: kinfo  ! returned OASIS3 info
-    ! REAL, DIMENSION(:,:,:) :: pdata  ! returned received field (shape is (:,:,1) for 2D)
-    ! REAL, DIMENSION(:,:,:) :: pmask  ! coupling mask, optional
+    ! REAL, DIMENSION(:,:)  :: pdata  ! returned received field (shape is (:,1) for 2D)
 
-As for sending, ``pdata`` shape must be equivalent to NEMO longitude and latitude grid sizes **without halos** for the two first dimensions and ``nlvl`` for the third dimension.
+As for sending, ``pdata`` shape must be equivalent to the horizontal flattened OMP-gathered LMDZ physics grid size for the first dimension, and ``nlvl`` for the second dimension.
 
 .. code-block:: fortran
 
-    ! Example to receive 2D forcing field "u_f"
-    INTEGER :: isec, info
-    REAL(wp), DIMENSION(jpi,jpj,1) :: uforce
+    ! Example to receive the 2D forcing field "u_f" in an array named to_rcv
+    INTEGER :: isec
+    REAL, DIMENSION(nbp_lon*jj_nb,1) :: to_rcv
     
-    isec = ( kt - nit000 ) * NINT( rn_Dt )
-    info = OASIS_idle
-    CALL cpl_rcv( nmodext, jpr_uf, isec, uforce(A2D(0),:), info )
-    
-    ! output u_f with XIOS xml files
-    CALL iom_put( 'ext_uf', uforce(:,:,1) )
-
+    isec = ( itap - 1 ) * phys_tstep
+    CALL cpl_rcv(midpycpl, jpr_uf, isec, to_rcv(kstart:kend,:))
 
 
 
 User guide
 ----------
 
-To facilitate deployment or modification of a Morays experiment, `Morays patches <https://github.com/morays-community/Patches-NEMO/>`_ directly provide pre-defined communication modules named ``pycpl.f90`` and ``pyfld.f90``. This section describes how to use them.
+To facilitate deployment or modification of a hybrid LMDZ experiment, `TRACCS-COMPACT patches <https://github.com/TRACCS-COMPACT/Hybrid_Python-LMDZ/tree/main/LMDZ_Patches/>`_ directly provide pre-defined communication modules named ``pycpl.f90`` and ``pyfld.f90``. This section describes how to use them.
 
 
 .. warning:: The pre-defined communication modules require Eophis version 1.1.0 or later to be used.
 
 
-The presented examples rely on the DINO.GZ21 test case. Purposes and behaviors of DINO.GZ21 are described in the NEMO **Getting started** section of this documentation. Let's resume what both entities are exchanging.
+The presented examples rely on the BENCH32x32x39.DJ08 test case. Purposes and behaviors of BENCH32x32x39.DJ08 are described in the LMDZ **Getting started** section of this documentation. Let's resume what both entities are exchanging.
 
-NEMO intends to send:
-    - two time-evolving velocity fields ``u`` and ``v`` at a ``2700s`` frequency, on grid ``(62,199)``
-    - two fixed metric fields ``mask_u`` and ``mask_v`` on the same grid
-and to receive from GZ21 model:
-    - two forcing fields ``u_f`` and ``v_f`` with the same dimensions
+LMDZ intends to send:
+    - three time-evolving atmospheric fields named ``pres``, ``temp``, and ``q_spec`` at a ``900s`` frequency, on grid ``(32,33,39)``
+and to receive from DJ08 formulation:
+    - the wet-bulb potential temperature fields ``theta_w``, with the same dimensions
 
 
 **with corresponding Eophis exchange definition:**
 
 .. code-block:: python
 
-    {'freq' : step, 'grd' : 'DINO_Grid', 'lvl' : nlvl, 'in' : ['u','v'], 'out' : ['u_f','v_f']}
+    {'freq' : step, 'grd' : 'lmdz', 'lvl' : 39, 'in' : ['pres','temp','q_spec'], 'out' : ['theta_w'] }
 
 
 
@@ -257,96 +255,84 @@ Module ``pyfld.F90`` is dedicated to the definition of arrays containing the fie
 
 .. code-block:: fortran
 
-    REAL(wp), PUBLIC, ALLOCATABLE, SAVE, DIMENSION(:,:,:)  :: ext_uf, ext_vf !: Outsourced subgrid momentum forcing fields
+    !!-------------------------------------------------------------------------
+    !!                   Fields on the OMP-shared physics grid
+    !!-------------------------------------------------------------------------
+    REAL, PUBLIC, ALLOCATABLE, SAVE, DIMENSION(:,:)  :: theta_w  ! ! outsourced wet-bulb pot. temp.
+    !$OMP THREADPRIVATE(theta_w)
 
-
-The advantage is that we just need to store the results exchanged and/or computed by the communication module in ``ext_uf`` and ``ext_vf``. Then, they can be imported to be used by any other NEMO4 module with:
-
-.. code-block:: fortran
-
-    USE pyfld
-
-
-Two functions to (de)allocate the arrays with the right grid size are present in the module and must be correctly set. For instance:
+We just need to store the results exchanged and/or computed by the communication module in ``theta_w``. Then, it can be imported to be used by any other module with:
 
 .. code-block:: fortran
 
-   SUBROUTINE init_python_fields()
+    USE pyfld, ONLY: theta_w
+
+
+A function to allocate the arrays with the right grid size is present in the module and must be correctly set. For instance:
+
+.. code-block:: fortran
+
+   SUBROUTINE pyfld_alloc()
       !!----------------------------------------------------------------------
-      !!             ***  ROUTINE init_python_fields  ***
+      !!             ***  ROUTINE pyfld_alloc  ***
       !!
-      !! ** Purpose :   Initialisation of the Python module
+      !! ** Purpose :   Initialisation of the Python coupling working arrays
       !!
       !! ** Method  :   * Allocate arrays for Python fields
-      !!                * Configure Python coupling
       !!----------------------------------------------------------------------
       !
-      ! Allocate fields
-      ALLOCATE( ext_uf(jpi,jpj,jpk) , ext_vf(jpi,jpj,jpk) )
+      ! [...]
       !
-      ! configure coupling
-      CALL init_python_coupling()
+      ! Allocate fields on physics grid
+      ALLOCATE( theta_w(klon, klev) )
       !
-   END SUBROUTINE init_python_fields
+      ! [...]
+      !
+   END SUBROUTINE pyfld_alloc
    
    
-.. code-block:: fortran
+It is automatically called during LMDZ6 initialization.
 
-   SUBROUTINE finalize_python_fields()
-      !!----------------------------------------------------------------------
-      !!             ***  ROUTINE finalize_python_fields  ***
-      !!
-      !! ** Purpose :   Free memory used by Python module
-      !!
-      !! ** Method  :   * deallocate arrays for Python fields
-      !!                * deallocate Python coupling
-      !!----------------------------------------------------------------------
-      !
-      ! Free memory
-      DEALLOCATE( ext_uf, ext_vf )
-      !
-      ! terminate coupling environment
-      CALL finalize_python_coupling()
-      !
-   END SUBROUTINE finalize_python_fields
-
-They are automatically called during NEMO4 initialization and termination.
+.. note :: Depending on the grid on which you wish to define the array, the allocation and declaration must be performed differently. ``pyfld.F90`` contains commented templates for arrays defined on the coupling grid (horizontal flattened OMP-gathered physics grid), OMP-shared physics grid, or dynamic grid.
 
 
-Exchanging fields
-~~~~~~~~~~~~~~~~~
+Exchange fields
+~~~~~~~~~~~~~~~
 
-Configuration of OASIS3-MCT following Eophis definitions in NEMO4 is automatically handled by the ``pycpl.F90`` module. The latter simply provides two functions to send and receive fields in accordance with the Eophis framework:
+Configuration of OASIS3-MCT following Eophis definitions in LMDZ6 is automatically handled by the ``pycpl.F90`` module. The latter simply provides two functions to send and receive fields in accordance with the Eophis framework:
 
 
 .. code-block:: fortran
 
-    CALL send_to_python(varname, to_send, kt)
+    CALL send_to_python_GRD(varname, to_send, kt)
     ! CHAR                    :: varname  ! field name defined in Eophis
     ! REAL                    :: to_send  ! array to send, 2D or 3D
-    ! INTEGER                 :: kt       ! time step
+    ! INTEGER                 :: kt       ! physics time step
     
     # ---------------------------------------------------------------- #
-    ! Example to send velocity field uu in pipeline "u"
-    CALL send_to_python('u', uu(:,:,:,Kbb), kstp)
+    ! Example to send velocity field pplay in pipeline "pres"
+    CALL send_to_python_phys('pres', pplay, itap)
 
 
 .. code-block:: fortran
 
-    CALL receive_from_python(varname, to_rcv, kt)
+    CALL receive_from_python_GRD(varname, to_rcv, kt)
     ! CHAR                    :: varname  ! field name defined in Eophis
     ! REAL                    :: to_rcv   ! array that will receive data, 2D or 3D
-    ! INTEGER                 :: kt       ! time step
+    ! INTEGER                 :: kt       ! physics time step
     
     # ---------------------------------------------------------------- #
-    ! Example to receive forcing term from pipeline "u_f" in ext_uf
-    CALL receive_from_python('u_f', ext_uf, kstp)
+    ! Example to receive result from pipeline "thetaw" in theta_w
+    CALL receive_from_python_phys('theta_w', theta_w, itap)
 
 
-Those can be used anywhere in NEMO by importing the ``pycpl`` module. For more convenience, it can be useful to gather all sendings and/or receivings in a same routine. For instance, ``stpmlf.F90`` calls ``inputs_gz21()`` and ``update_from_gz21()`` in ``pyfld.F90`` at different moments of time loop to take advantage of parallel execution of NEMO4 and the Python scripts. The former gather all sendings, and the latter gathers all receptions.
+.. note :: ``GRD`` is here to specify that it should be replaced by ``cpl`` or ``phys``. The former functions handle fields discretized on the coupling grid (flattened OMP-gathered physics grid), while the latter hanfles fields discretized on the OMP-shared physics grid and perform the conversion. For fields defined on the dynamic grid or others, the conversion must be done by the user. For a demonstration of array tranfer, check the use case LMDZ-GCM96x96x35.K26.
 
 
-Compile NEMO
+These functions can be used anywhere in LMDZ by importing the ``pycpl`` module. For more convenience, it can be useful to gather all sendings and or receivings in two different routines, then to call them at different moments of the time loop. This is the way to take advantage of parallel execution of LMDZ6 and the Python scripts and reduce waiting time for Python returns.
+
+
+Compile LMDZ
 ------------
 
-After configurating the communication module, NEMO must be compiled with active *key_oasis3* CPP key and OASIS3-MCT_v5.0 (see this `guide <https://morays-doc.readthedocs.io/en/latest/nemo.getting_started.html#morays-environment>`_).
+After configurating the communication module, LMDZ must be compiled with active *key_eophis* CPP key and OASIS3-MCT_v5.0 (see this `guide <https://morays-doc.readthedocs.io/en/latest/nemo.getting_started.html#morays-environment>`_).

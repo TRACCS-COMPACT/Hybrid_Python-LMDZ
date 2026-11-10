@@ -1,4 +1,4 @@
-Tutorial: Create a Morays experiment for NEMO
+Tutorial: Create a hybrid experiment for LMDZ
 =============================================
 
 
@@ -6,11 +6,11 @@ Tutorial: Create a Morays experiment for NEMO
    :maxdepth: 2
 
 
-In this tutorial we will create a Morays experiment for NEMO from scratch. Objective is to deploy the ML model proposed by `Wu et al. 2025 <https://doi.org/10.48550/arXiv.2503.03990>`_ (W25) within the `C1D_PAPA <https://doi.org/10.5194/gmd-8-69-2015>`_ NEMO config.
+In this tutorial we will create a hybrid experiment for LMDZ from scratch. Objective of the experiment is to couple the LMDZ BENCH test case with the `MetPy <https://unidata.github.io/MetPy/latest/>`_ library to compute the wet-bulb potential temperature using the `Davies-Jones (2008) <https://doi.org/10.1175/2007MWR2224.1?utm_source=chatgpt.com>`_ formulation.
 
 
 Prerequisites to the tutorial:
-    - Operating NEMO environment with XIOS (see `NEMO doc <https://sites.nemo-ocean.io/user-guide/install.html>`_ for help)
+    - Operating LMDZ environment with XIOS (see `LMDZ doc <https://lmdz.lmd.jussieu.fr/utilisateurs/installation-lmdz>`_ for help)
     - Operating Python environment
     - Operating Morays environment (see `here <https://morays-doc.readthedocs.io/en/latest/nemo.getting_started.html#morays-environment>`_)
 or:
@@ -76,135 +76,126 @@ or:
 Introduction
 ------------
 
-C1D_PAPA is a 1D column NEMO configuration used to isolate and study vertical processes. It models turbulent-mixing behaviour over 1 year at Ocean Station PAPA, located in the North Pacific Ocean. For the tutorial, we will use a slightly modified version of the test case in which the vertical grid is regularly discretized on 32 depth levels over 200m, denoted hereafter as C1D_PAPA32.
+The LMDZ BENCH case is a realistic low-resolution atmospheric general circulation configuration designed for demonstration and educational purposes.
 
-The work of W25 takes place in the context of parameterizing air–sea fluxes with their statistically variable behavior, which is absent from deterministic bulk algorithms. The objective is to estimate the mean and variance of a stochastic process at each grid cell. These estimates are intended to be used for a stochastic prediction of momentum and heat fluxes at the ocean surface. We aim to use the W25 ML model to improve the results of a C1D_PAPA32 simulation. The model relies on an artificial neural network (ANN) that takes ocean temperature, air temperature, specific humidity, wind speed, and air pressure at ocean surface as inputs. It returns the mean and standard deviation for wind stress, latent and sensible heat fluxes.
+The wet-bulb potential temperature is a useful thermodynamic diagnostic for characterizing atmospheric moisture and stability. Its computation involves moist thermodynamic processes that can be approximated using different formulations.
+The `Davies-Jones (2008) <https://doi.org/10.1175/2007MWR2224.1?utm_source=chatgpt.com>`_ (DJ08) formulation provides an accurate and computationally efficient method for estimating this quantity.
+Available through the MetPy Python library, this formulation offers an alternative to the thermodynamic diagnostics currently implemented in LMDZ.
+It relies on atmospheric pressure, temperature, and specific humidity, and can be evaluated independently at each grid cell.
 
-The ANN is written with native Python libraries while NEMO is written in Fortran. Since NEMO has an OASIS3-MCT interface, we can use the Eophis library to couple an external Python script that will contain the W25 model.
+Here is the difficulty: LMDZ is written in Fortran, while MetPy is a Python library. An interface is therefore required to allow both components to coexist and exchange data during runtime. Since LMDZ provides an OASIS3-MCT interface, we can use the Eophis library to couple an external Python script that receives the atmospheric fields, computes the wet-bulb potential temperature using MetPy, and sends the resulting diagnostic field back to LMDZ.
 
 
-
-
-.. image:: images/NEMO_W25_XIOS.png
-    :width: 600px
+.. image:: images/LMDZ_PY_XIOS.png
+    :width: 550px
     :align: center
 
 
-The final experiment will execute the following steps:
-    - NEMO models turbulent mixing in the C1D_PAPA32 configuration
-    - It sends the inputs variables to the Python script running W25
-    - W25 model computes the mean and standard deviation of the air-sea fluxes from inputs
-    - Outputs are sent back to NEMO and used for stochastic computation of air-sea fluxes
-    - Results are used as surface boundary condition and written in an output file with XIOS
+The experiment will execute the following steps:
+    - LMDZ is modeling the atmospheric circulation
+    - It sends the atmospheric fields towards the Python script every time step of the physics core
+    - The MetPy Python script computes the DJ08 wet-bulb temperature
+    - Results are sent back to LMDZ and written in an output file with XIOS
 
 
 
-1. Run standard C1D_PAPA32
---------------------------
+1. Run standard BENCH32x32x39
+-----------------------------
 
-We start by running standard C1D_PAPA32 without W25. In this case, air-sea fluxes are computed with NCAR bulk formula. Get a copy of NEMO v4.2.1:
+We start by running standard BENCH32x32x39 without DJ08. Get a copy of LMDZ6:
 
 .. code-block:: bash
 
-    # Clone NEMO
+    # Clone LMDZ
     mkdir -p ~/to_host
     cd ~/to_host
-    git clone --branch 4.2.1 https://forge.nemo-ocean.eu/nemo/nemo.git nemo_v4.2.1
+    wget http://lmdz.lmd.jussieu.fr/pub/install_lmdz.sh
+    chmod +x install_lmdz.sh
+    ./install_lmdz.sh -name LMDZ6_PY -netcdf 0 -parallel mpi_omp -veget none -rad oldrad -bench 0
 
 
-Inputs, config material and arch file for C1D_PAPA32 are accessible in this repository:
+Config material and arch file for the tutorial are accessible in this repository:
     
 .. code-block:: bash
 
-    # Clone C1D_PAPA32
-    cd ~/to_host/nemo_v4.2.1/cfgs/
-    git clone https://github.com/alexis-barge/C1D_PAPA32.git
+    # Clone tutorial material
+    cd ~/to_host/
+    git clone https://github.com/TRACCS-COMPACT/Hybrid_Python-LMDZ.git
 
 
 Build config:
     
 .. code-block:: bash
 
-    # Create C1D_PAPA32 test case
-    cd ~/to_host/nemo_v4.2.1
-    echo "C1D_PAPA32 OCE" >> cfgs/work_cfgs.txt
+    # Download and create BENCH config
+    wget --no-check-certificate -nv -P ~/to_host/LMDZ6_PY/modipsl/config  http://lmdz.lmd.jussieu.fr/pub/3DBenchs/bench_lmdz_32x32x39.tar.gz
+    tar -xf ~/to_host/LMDZ6_PY/modipsl/config/bench_lmdz_32x32x39.tar.gz   -C  ~/to_host/LMDZ6_PY/modipsl/config
     
-    # Compile -- adapt arch file if you are not running Morays container
-    cp cfgs/C1D_PAPA32/arch-C1D_PAPA32_GCC.fcm   arch/
-    ./makenemo -m "C1D_PAPA32_GCC" -r C1D_PAPA32 -j 3
+    # Get arch files -- adapt them if you are not running Morays container
+    cp ~/to_host/Hybrid_Python-LMDZ/TUTO/arch/*   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/arch
     
-    
-and run NEMO:
+    # Compile
+    cd ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/
+    ./makelmdz_fcm -prod -config Bench -arch local-gfortran-parallel -j 8 -p lmd -d 32x32x39 -v false -mem -parallel mpi_omp -io xios gcm
+
+
+and run LMDZ:
 
 .. code-block:: bash
 
-    cd ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32/EXP00
-    ./nemo
+    # Get input files
+    cp ~/to_host/Hybrid_Python-LMDZ/TUTO/XML/*   ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
+
+    # Modify namelists
+    cd ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39
+    sed -i 's/iflag_rrtm=1/iflag_rrtm=0/' physiq.def
+    sed -i 's/NSW=6/NSW=2/' physiq.def
+    echo "ok_all_xml=y" >> run.def
     
-You should find netcdf files ``C1D_PAPA32_1d_20100615_20110614_grid_<T,U,V,W>.nc`` when done. Scripts to plot profiles against time are provided:
- 
-.. code-block:: bash
- 
-    # Get plotting scripts and references
-    cd ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32/EXP00
-    ln -s ../PLOTS/* .
- 
-    # Plot, you might need to exit container (and lima VM) to visualize figures
-    python3 ./plots_res.py
-    python3 ./plots_diff.py
- 
-
-.. image:: images/RES_C1D_PAPA32.png
-    :width: 750px
-    :align: center
+    # Execute
+    cp ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/bin/gcm_32x32x39_phylmd_oldrad_para_mem.e  gcm.e
+    ./gcm.e
+    
+You should find netcdf file ``histday.nc`` among others when done.
  
  
 
-2. Run W25 model
-----------------
+2. Run DJ08 formulation
+-----------------------
 
-We have an operating NEMO configuration. Let's focus now on the W25 model. As mentionned earlier, it must be written in an external Python script. W25 code and an implementation of the model are provided in this repository:
+We have an operating LMDZ configuration. Let's focus now on the DJ08 formulation. As mentionned earlier, it must be written in an external Python script. DJ08 code and an implementation of the formulation are provided in the tutorial repository:
 
 .. code-block:: bash
 
-    # Clone and install W25 model
-    cd ~/to_host/
-    git clone https://github.com/TRACCS-COMPACT/AG2025-workshop-ocean-ml-coupling.git  W25
-    cd W25/W25/W25ANN
-    pip install -e .
+    # Install MetPy
+    cd ~/to_host/Hybrid_Python-LMDZ/TUTO/DJ08
+    pip install -r requirements.txt
 
-Edit ``~/to_host/W25/W25/models.py``, a function ``W25ann()`` taking numpy arrays for all required inputs is already defined. Complete ``W25ann()`` as follows to convert the arrays into torch tensors, and pass them in the ANN to predict mean and standard deviation for the air-sea fluxes:
+Edit ``~/to_host/Hybrid_Python-LMDZ/TUTO/DJ08/models.py``, a function ``sub_wet_temp()`` taking numpy arrays for all required inputs is already defined. Complete ``sub_wet_temp()`` as follows to compute the dewpoint from specific humidity, and the wet-bulb potential temperature:
 
 
 .. code-block:: python
 
-        # Format inputs model
-        X = np.hstack([U.reshape(-1,1), To.reshape(-1,1), Ta.reshape(-1,1),
-                      rh.reshape(-1,1), p.reshape(-1,1)]).astype('float32')
-        X = torch.tensor(X)
+    # -- dewpoint from specific humidity (WMO8 eq. 4.A.6)
+    Td_q = mpcalc.dewpoint_from_specific_humidity(pressure=p_q, specific_humidity=q_q)
 
-        # Predict fluxes
-        M_mean = M.pred_mean(X).detach().numpy().squeeze()
-        M_std = M.pred_var(X).detach().numpy().squeeze() ** 0.5
-        SH_mean = SH.pred_mean(X).detach().numpy().squeeze()
-        SH_std = SH.pred_var(X).detach().numpy().squeeze() ** 0.5
-        LH_mean = LH.pred_mean(X).detach().numpy().squeeze()
-        LH_std = LH.pred_var(X).detach().numpy().squeeze() ** 0.5
+    # -- theta_e (Bolton 1980) then theta_w (Davies-Jones 2008 polynomial)
+    theta_w = mpcalc.wet_bulb_potential_temperature(pressure=p_q, temperature=T_q, dewpoint=Td_q)
 
 
-Note that stochastic fluctuations are generated after this block of code. Script ``models.py`` can be executed lonely with user-defined typical values as inputs (feel free to modify them). Run it to check that the model works correctly:
+Script ``models.py`` can be executed lonely with user-defined typical values as inputs (feel free to modify them). Run it to check that the model works correctly:
 
 .. code-block :: bash
 
     python3 ./models.py
     # Should print:
-    #    Res    -- taux: ...
+    #    Res    -- <theta_w>: ...
     #    Test successful
 
 
 .. note ::
 
-    We have now an operating W25 script. However, ``models.py`` does not possess an OASIS3-MCT interface and cannot be coupled with NEMO. In the next sections, we will build the Eophis scripts and configure NEMO to set up the coupling.
+    We have now an operating DJ08 script. However, ``models.py`` does not possess an OASIS3-MCT interface and cannot be coupled with LMDZ. In the next sections, we will build the Eophis scripts and configure LMDZ to set up the coupling.
 
 
 
@@ -225,20 +216,20 @@ Time has come to install Eophis:
 Define the exchanges
 ~~~~~~~~~~~~~~~~~~~~
 
-An Eophis script is provided in the W25 repository (``~/to_host/W25/W25/main.py``). The script may execute ``preproduction()`` or ``production()``. The first function is used to generate coupling material. The second one contains instructions to perform the coupling itself. For both, we need to define what we want to exchange in ``ocean_info()``. According to the diagram in introduction:
+An Eophis script is provided in the DJ08 repository (``~/to_host/Hybrid_Python-LMDZ/TUTO/DJ08/main.py``). The script may execute ``preproduction()`` or ``production()``. The first function is used to generate coupling material. The second one contains instructions to perform the coupling itself. For both, we need to define what we want to exchange in ``earth_info()``. According to the diagram in introduction:
 
-Eophis needs to receive from NEMO:
-    - surface fields ``ux``, ``uy``, ``tair``, ``toce``, ``q``, ``p`` at each time step, on grid ``(1,1,1)``
-and to send back results from W25:
-    -  ``taux``, ``tauy``, ``Qs``, ``Ql`` at each time step, on grid ``(1,1,1)``
+Eophis needs to receive from LMDZ:
+    - Fields ``pres``, ``temp`` and ``q_spec`` at each physics time step, on grid ``(32,33,39)``
+and to send back results from DJ08:
+    -  ``theta_w`` at each physics time step, on grid ``(32,33,39)``
 
 
-In Eophis, exchanges are defined in Tunnel. An empty Tunnel ``TO_NEMO`` (step 1) already exists:
+In Eophis, exchanges are defined in Tunnel. An empty Tunnel ``TO_EARTH`` (step 1) already exists:
 
 .. code-block :: python
 
     tunnel_config = list()
-    tunnel_config.append( { 'label' : 'TO_NEMO', \
+    tunnel_config.append( { 'label' : 'TO_LMDZ', \
                             'grids' : {}, \
                             'exchs' : [ {} ] }
                         )
@@ -248,54 +239,50 @@ Define the surface grid on which exchanges will be performed (i.e. 1 point grid)
 .. code-block :: python
 
     tunnel_config = list()
-    tunnel_config.append( { 'label' : 'TO_NEMO', \
-                            'grids' : { 'C1D' : {'npts' : (1,1)} }, \
+    tunnel_config.append( { 'label' : 'TO_LMDZ', \
+                            'grids' : { 'lmdz' : {'npts' : (32,33)} }, \
                             'exchs' : [ {} ] }
                         )
 
 
-What remains is to define exchanges themselves. According to NEMO namelist, time step is ``1800s``. Following `Tunnel documentation <https://eophis.readthedocs.io/en/latest/usage.html#tunnel>`_, we can complete exchanges definition with:
+What remains is to define exchanges themselves. According to LMDZ namelist, time step is ``900s``. Following `Tunnel documentation <https://eophis.readthedocs.io/en/latest/usage.html#tunnel>`_, we can complete exchanges definition with:
 
 .. code-block :: python
 
     tunnel_config = list()
-    tunnel_config.append( { 'label' : 'TO_NEMO', \
-                            'grids' : { 'C1D' : {'npts' : (1,1)} }, \
-                            'exchs' : [ {'freq' : 1800, 'grd' : 'C1D', 'lvl' : 1, 'in' : ['ux','uy','toce','tair','p','q'], 'out' : ['taux','tauy','Qs','Ql']} ] }
+    tunnel_config.append( { 'label' : 'TO_LMDZ', \
+                            'grids' : { 'lmdz' : {'npts' : (32,33)} }, \
+                            'exchs' : [ {'freq' : 900, 'grd' : 'lmdz', 'lvl' : 39, 'in' : ['pres','temp','q_spec'], 'out' : ['theta_w']} ] }
                         )
 
 
 The exchange line may be read as:
 
-    every ``1800`` seconds, execute the receiving of field ``ux``, ``uy``, ``toce``, ``tair``, ``p``, ``q`` and the sending back of fields ``taux``, ``tauy``, ``Qs``, ``Ql`` on the first level of grid ``C1D``.
+    every ``900`` seconds, execute the receiving of field ``pres``, ``temp``, ``q_spec``, and the sending back of fields ``theta_w`` on the ``39``` levels of grid ``lmdz``.
 
 Create Tunnel object (step 2) with:
 
 .. code-block :: python
 
-    to_nemo, = eophis.register_tunnels( tunnel_config )
+    to_lmdz, = eophis.register_tunnels( tunnel_config )
 
 
 Generate OASIS3-MCT material
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OASIS3-MCT material is generated with ``write_coupling_namelist()``, which requires total simulation time as argument. This information is available in NEMO namelist ``namelist_cfg``. The latter is read and returned by ``ocean_info()``:
-
-.. code-block :: python
-
-    nemo_nml = eophis.FortranNamelist('~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32/EXPREF/namelist_cfg')
-    
-Thus, get namelist parameters (step 3) with:
+OASIS3-MCT material is generated with ``write_coupling_namelist()``, which requires total simulation time as argument. This information is available in LMDZ namelists ``namelist_cfg``. The latter is read and returned by ``earth_info()``. Thus, get namelist parameters (step 3) with:
     
 .. code-block :: python
 
-    step, it_end, it_0 = nemo_nml.get('rn_Dt','nn_itend','nn_it000')
-    total_time = (it_end - it_0 + 1) * step
+    step = int( 24*3600 / day_step * iphysiq )
+    ite_end = int(24*3600*nday / step)
+    ite_0 = 1
 
 and use them to write OASIS3-MCT namelist (step 4):
 
 .. code-block :: python
 
+    total_time = (it_end - it_0 + 1) * step
     eophis.write_coupling_namelist( simulation_time=total_time )
 
 Eophis preproduction script is ready to be executed:
@@ -320,14 +307,14 @@ Coupling is effective. Fields can be received and used as arguments for W25. Imp
 
 .. code-block :: python
 
-    from models import W25ann
+    from models import sub_wet_temp
     
     
 Exchanges must be synchronized in time, this is done by Loop. Loop requires a Tunnel to work with, number of time iteration, and time step value. Define Loop (step 7) as follows:
 
 .. code-block :: python
 
-    @eophis.all_in_all_out( geo_model=to_nemo, step=step, niter=niter )
+    @eophis.all_in_all_out( geo_model=to_lmdz, step=step, niter=niter )
 
 
 Final step is to specify connexions between the exchanged data and W25. Connect received data, data to send and W25 in ``loop_core()`` (step 8):
@@ -335,223 +322,160 @@ Final step is to specify connexions between the exchanged data and W25. Connect 
 .. code-block :: python
 
     def loop_core(**inputs):
-        """
-        Content of loop_core is a Router. Connexions between exchanged variables and models are defined here.
-        inputs dictionnary contains variables defined in Tunnel exchanges, and received by Eophis from NEMO.
-        
-        """
-        packed_res = W25ann( inputs['ux'], inputs['uy'], inputs['toce'], inputs['tair'], inputs['p'], inputs['q'] )
-
-        outputs= {}
-        outputs['taux'], outputs['tauy'], outputs['Qs'], outputs['Ql'] = packed_res
+        outputs = {}
+        outputs['theta_w'] = sub_wet_temp( inputs['pres'], inputs['temp'], inputs['q_spec'] )
 
         return outputs
 
 
-Note that all these components describe only pipelines, identified by the field names. We will now configure NEMO in accordance with the coupling environment defined by Eophis. The objective is to choose which array will be passed through OASIS3-MCT along these pipelines.
+Note that all these components describe only pipelines, identified by the field names. We will now configure LMDZ in accordance with the coupling environment defined by Eophis. The objective is to choose which array will be passed through OASIS3-MCT along these pipelines.
 
 
 
-4. Build C1D_PAPA32.W25
------------------------
+4. Build BENCH32x32x39.DJ08
+---------------------------
 
-OASIS3-MCT-built NEMO
+OASIS3-MCT-built LMDZ
 ~~~~~~~~~~~~~~~~~~~~~
 
-C1D_PAPA32.W25 models the same C1D_PAPA32 ocean circulation. Duplicate the case:
+BENCH32x32x39.DJ08 models the same BENCH32x32x39 circulation. Duplicate the case:
 
 .. code-block:: bash
 
-    # Create C1D_PAPA32.W25 test case
-    cd ~/to_host/nemo_v4.2.1/cfgs
-    mkdir C1D_PAPA32.W25
-    echo "C1D_PAPA32.W25 OCE" >> work_cfgs.txt
+    # Duplicate BENCH32x32x39 test case
+    cd ~/to_host/LMDZ6_PY/modipsl/config
+    cp -r BENCH32x32x39   BENCH32x32x39.DJ08
     
-    # Copy C1D_PAPA32 material
-    cp -r C1D_PAPA32/EXPREF   C1D_PAPA32.W25/
-    cp -r C1D_PAPA32/MY_SRC   C1D_PAPA32.W25/
-    cp -r C1D_PAPA32/FORCING  C1D_PAPA32.W25/
 
-and update experiment name in NEMO namelist:
-
-.. code-block:: bash
-
-    cd ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/EXPREF
-    vi namelist_cfg
-        # ...
-        cn_exp      = "C1D_PAPA32.W25" !  experience name
-    
-    
-This configuration must be compatible with an OASIS3-MCT build. OASIS3-MCT interface in NEMO is activated by ``key_oasis3`` CPP key. We add it to those already used by C1D-PAPA32:
-
-.. code-block:: bash
-
-    # Create CPP key file
-    echo " bld::tool::fppkeys   key_xios key_linssh key_oasis3" >> ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/cpp_C1D_PAPA32.W25.fcm
-
-
-OASIS3-MCT and XIOS (compiled with OASIS3-MCT) must be linked during NEMO compilation. Duplicate C1D_PAPA32 arch file and include them:
+OASIS3-MCT and XIOS (compiled with OASIS3-MCT) must be linked during LMDZ compilation. Duplicate arch files and include them:
 
 .. code-block :: bash
 
     # New arch file
-    cd ~/to_host/nemo_v4.2.1/arch
-    cp arch-C1D_PAPA32_GCC.fcm   arch-C1D_PAPA32_W25_GCC.fcm
+    cd ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/arch
+    cp arch-local-gfortran-parallel.fcm   arch-local-gfortran-parallel-cpl.fcm
+    cp arch-local-gfortran-parallel.env   arch-local-gfortran-parallel-cpl.env
+    cp arch-local-gfortran-parallel.path  arch-local-gfortran-parallel-cpl.path
 
     # Modify following lines: template is valid for Morays container
-    vi arch-C1D_PAPA32_W25_GCC.fcm
+    vi arch-local-gfortran-parallel-cpl.path
         # ...
         %XIOS_HOME      /home/jdoe/XIOS_OASIS
-        %OASIS_HOME     /home/jdoe/oasis3-mct/BLD
         # ...
-        %OASIS_INC      -I%OASIS_HOME/include -I%OASIS_HOME/build-shared/lib/cbindings
-        %OASIS_LIB      -L%OASIS_HOME/lib -loasis.cbind -lpsmile.MPI1 -lmct -lmpeu -lscrip
-        # ...
-        %USER_INC       %XIOS_INC %OASIS_INC %NCDF_INC
-        %USER_LIB       %XIOS_LIB %OASIS_LIB %NCDF_LIB
+        OASIS_INCDIR="-I/home/jdoe/oasis3-mct/BLD/include"
+        OASIS_LIBDIR="-L/home/jdoe/oasis3-mct/BLD/lib"
+        OASIS_LIB="-loasis.cbind -lpsmile.MPI1 -lscrip -lmct -lmpeu"
 
 
 Finally configure XIOS to be aware of OASIS3-MCT environment:
 
 .. code-block:: bash
 
-    vi ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/EXPREF/iodef.xml
+    vi ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39.DJ08/iodef.xml
         # ...
         <variable id="using_oasis"               type="bool">true</variable>
 
 
-Minimal NEMO sources modifications are required to set up a hybrid Python-NEMO experiment. Those modifications are provided by Morays patch. It enables creation of independent OASIS3-MCT modules. It can be obtained in this repository:
+Minimal LMDZ sources modifications are required to set up a hybrid Python-LMDZ experiment. Those modifications are provided by the TRACCS-COMPACT patch. It enables creation of independent OASIS3-MCT modules. It can be obtained from the repository that we have already cloned for the tutorial. We tranfer the patch sources to those of LMDZ:
 
 
 .. code-block :: bash
 
-    # Get Morays patch
-    cd ~/to_host/
-    git clone https://github.com/morays-community/Patches-NEMO.git
-    
-We transfer Morays sources for NEMO_v4.2.1 OCE module to our case:
-
-.. code-block :: bash
-
-    cp ~/to_host/Patches-NEMO/NEMO_v4.2.1/OCE/*   ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/MY_SRC/
+    cd ~/to_host/Hybrid_Python-LMDZ/LMDZ_Patches/LMDZ6
+    cp cpl_mod.F90 oasis.F90 pyfld.F90 pycpl.F90 eophis_def.F90 phyetat0_mod.f90   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/phylmd
+    cp mod_const_mpi.F90 parallel_lmdz.F90   ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/dyn3dmem
 
 
 
 Configure NEMO
 ~~~~~~~~~~~~~~
 
-Morays patch comes with pre-defined Python communication modules ``pyfld.f90`` and ``pycpl.F90``. Edit ``pyfld.F90`` to allocate arrays where fields returned by W25 will be stored:
+The patch comes with pre-defined Python communication modules ``pyfld.f90`` and ``pycpl.F90``. Edit ``pyfld.F90`` to allocate arrays where fields returned by DJ08 will be stored:
 
 .. code-block :: bash
 
-    vi ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/MY_SRC/pyfld.F90
+    vi ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/phylmd/pyfld.F90
 
 
 .. code-block :: Fortran
     
-        ! Line 26
-        REAL(wp), PUBLIC, ALLOCATABLE, SAVE, DIMENSION(:,:)  :: ext_qs, ext_ql, ext_taux, ext_tauy
-        ! Line 46
-        ALLOCATE( ext_taux(jpi,jpj), ext_tauy(jpi,jpj), ext_qs(jpi,jpj), ext_ql(jpi,jpj) )
-        ! Line 65
-        DEALLOCATE( ext_taux, ext_tauy, ext_qs, ext_ql )
+        ! Line 30
+        REAL, PUBLIC, ALLOCATABLE, SAVE, DIMENSION(:,:)  :: theta_w
+        !$OMP THREADPRIVATE(theta_w)
+        ! Line 70
+        ALLOCATE( theta_w(klon, klev) )
 
 
-Import communication modules in ``sbcblk.F90``, as it is the location of air-sea fluxes computation:
+Import communication modules in ``physiq_mod.F90``, as it is the location where we will call the Python script:
 
 
 .. code-block :: bash
     
-    cp ~/to_host/nemo_v4.2.1/src/OCE/SBC/sbcblk.F90   ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/MY_SRC/
-    vi ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/MY_SRC/sbcblk.F90
+    vi ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/libf/phylmd/physiq_mod.F90
 
 .. code-block :: Fortran
 
-    ! Line 44
+    ! Line 409
     USE pyfld
     USE pycpl
 
 
-The functions in NEMO for sending or receiving arrays to or from Python in accordance with Eophis are ``send_to_python()`` and ``receive_from_python()``, respectively. They take the field name defined in Eophis exchanges, the array to send or in which to store the results, and the current NEMO time step as arguments. Proceed sendings and receptions in ``sbcblk.F90`` with:
+The functions in LMDZ for sending or receiving arrays to or from Python in accordance with Eophis are ``send_to_python_phys()`` and ``receive_from_python_phys()``, respectively. They take the field name defined in Eophis exchanges, the array to send or in which to store the results, and the current LMDZ physics time step as arguments. Proceed sendings and receptions in ``physiq_mod.F90`` with:
 
 
 .. code-block :: Fortran
 
-    ! Line 820
-    CALL send_to_python('ux', pwndi, kt)
-    CALL send_to_python('uy', pwndj, kt)
-    CALL send_to_python('tair', ptair - 273.15_wp, kt)
-    CALL send_to_python('toce', pst, kt)
-    CALL send_to_python('q', pqair, kt)
-    CALL send_to_python('p', pslp, kt)
-    
-    CALL receive_from_python('taux', ext_taux, kt)
-    CALL receive_from_python('tauy', ext_tauy, kt)
-    CALL receive_from_python('Qs', ext_qs, kt)
-    CALL receive_from_python('Ql', ext_ql, kt)
+    ! Line 2499
+    ! Send inputs
+    CALL send_to_python_phys('pres', pplay, itap)
+    CALL send_to_python_phys('temp', t_seri, itap)
+    CALL send_to_python_phys('q_spec', q_seri, itap)
+    ! Receive
+    CALL receive_from_python_phys('theta_w', theta_w, itap)
 
 
-Then, overwrite NEMO air-sea fluxes with results from the Python model:
-
-.. code-block :: Fortran
-
-    ! Line 832
-    psen(:,:) = ext_qs(:,:) * tmask(:,:,1)
-    plat(:,:) = ext_ql(:,:) * tmask(:,:,1)
-    taum(:,:) = SQRT(ext_taux(:,:)**2 + ext_tauy(:,:)**2)  * tmask(:,:,1)
+For the tutorial, nothing will be done with ``theta_w`` array but its content, computed on the Python side, is now available in LMDZ.
 
 
-Finally build C1D_PAPA32.W25:
+Finally build LMDZ with compilation flag ``-c true`` and ``key_eophis`` CPP key:
+
 
 .. code-block :: bash
 
     # Compile
-    cd ~/to_host/nemo_v4.2.1/
-    ./makenemo -m "C1D_PAPA32_W25_GCC" -r C1D_PAPA32.W25 -j 3
+    cd ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/
+    ./makelmdz_fcm -prod -config Bench -arch local-gfortran-parallel-cpl -j 8 -cpp key_eophis -p lmd -d 32x32x39 -v false -mem -parallel mpi_omp -io xios -c true gcm
     
 
 
-5. Run C1D_PAPA32.W25
----------------------
+5. Run BENCH32x32x39.DJ08
+-------------------------
 
-Complete C1D_PAPA32.W25 config with Eophis and W25 Python scripts:
+Complete BENCH32x32x39.DJ08 config with Eophis and DJ08 Python scripts:
 
 .. code-block :: bash
 
     # Get Python material
-    cp ~/to_host/W25/W25/*.py   ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/EXP00
+    cp ~/to_host/Hybrid_Python-LMDZ/TUTO/DJ08/*.py   ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39.DJ08/
 
-Re-execute Eophis preproduction in config and run NEMO-Eophis:
+
+Re-execute Eophis preproduction in config and run LMDZ-Eophis:
 
 .. code-block :: bash
 
-    cd ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/EXP00
+    cd ~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39.DJ08/
+
+    # Get LMDZ-OASIS3-MCT executable
+    cp ~/to_host/LMDZ6_PY/modipsl/modeles/LMDZ/bin/gcm_32x32x39_phylmd_oldrad_para_mem_couple.e  gcm_cpl.e
+
+    # Run hybrid LMDZ
     python3 ./main.py --exec preprod
-    mpirun -np 1 ./nemo : -np 1 python3 ./main.py --exec prod
+    mpirun -np 1 ./gcm_cpl.e : -np 1 python3 ./main.py --exec prod
 
-
-As for C1D_PAPA32, you should find some netcdf files. Use same scripts to plot results:
-
-.. code-block:: bash
- 
-    # Get plotting scripts and references
-    cd ~/to_host/nemo_v4.2.1/cfgs/C1D_PAPA32.W25/EXP00
-    ln -s ../../C1D_PAPA32/PLOTS/* .
- 
-    # Plot, you might need to exit container (and lima VM) to visualize figures
-    python3 ./plots_res.py
-    python3 ./plots_diff.py
-    
-    
-.. image:: images/RES_C1D_PAPA32.W25.png
-    :width: 750px
-    :align: center
-    
-    
 
 Going further
 -------------
 
-You have seen the minimal steps to set up a hybrid Python-NEMO experiment in Morays framework. We invite you to read `Eophis tutorial <https://eophis.readthedocs.io/en/latest/tutorial.html>`_ and `configuration guide for NEMO <https://morays-doc.readthedocs.io/en/latest/nemo.api_4.html>`_ to discover advanced coupling features.
+You have seen the minimal steps to set up a hybrid LMDZ experiment. We invite you to read `Eophis tutorial <https://eophis.readthedocs.io/en/latest/tutorial.html>`_ and `configuration guide for LMDZ <https://morays-doc.readthedocs.io/en/latest/lmdz.api.html>`_ to discover advanced coupling features.
 
-If this tutorial helped you to build a new Morays experiment with NEMO, it would be greatly apreciated if you could `contribute to the Morays collection <https://morays-doc.readthedocs.io/en/latest/contribute.html>`_.
+If this tutorial helped you to build a new hybrid experiment with LMDZ, it would be greatly apreciated if you could `contribute to the TRACCS-COMPACT collection <https://morays-doc.readthedocs.io/en/latest/contribute.html>`_.
