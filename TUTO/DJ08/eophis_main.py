@@ -43,7 +43,6 @@ def preproduction():
 
     # earth info
     to_lmdz, step, it_end, it_0 = earth_info()
-    total_time = (it_end - it_0 + 1) * step
     
     # Step 4: write OASIS namelist
     # ...
