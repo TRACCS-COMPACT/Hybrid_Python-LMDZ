@@ -224,7 +224,7 @@ and to send back results from DJ08:
     -  ``theta_w`` at each physics time step, on grid ``(32,33,39)``
 
 
-In Eophis, exchanges are defined in Tunnel. An empty Tunnel ``TO_EARTH`` (step 1) already exists:
+In Eophis, exchanges are defined in Tunnel. An empty Tunnel ``TO_LMDZ`` (step 1) already exists:
 
 .. code-block :: python
 
@@ -258,7 +258,7 @@ What remains is to define exchanges themselves. According to LMDZ namelist, time
 
 The exchange line may be read as:
 
-    every ``900`` seconds, execute the receiving of field ``pres``, ``temp``, ``q_spec``, and the sending back of fields ``theta_w`` on the ``39``` levels of grid ``lmdz``.
+    every ``900`` seconds, execute the receiving of field ``pres``, ``temp``, ``q_spec``, and the sending back of fields ``theta_w`` on the ``39`` levels of grid ``lmdz``.
 
 Create Tunnel object (step 2) with:
 
@@ -270,7 +270,7 @@ Create Tunnel object (step 2) with:
 Generate OASIS3-MCT material
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OASIS3-MCT material is generated with ``write_coupling_namelist()``, which requires total simulation time as argument. This information is available in LMDZ namelists ``namelist_cfg``. The latter is read and returned by ``earth_info()``. Thus, get namelist parameters (step 3) with:
+OASIS3-MCT material is generated with ``write_coupling_namelist()``, which requires total simulation time as argument. This information is available in LMDZ namelists. The latter are read and returned by ``earth_info()``. Thus, get namelist parameters (step 3) with:
     
 .. code-block :: python
 
@@ -303,7 +303,7 @@ We complete function ``production()`` to drive exchanges all along the run. Sinc
 
     eophis.open_tunnels()
 
-Coupling is effective. Fields can be received and used as arguments for W25. Import it (step 6):
+Coupling is effective. Fields can be received and used as arguments for DJ08. Import it (step 6):
 
 .. code-block :: python
 
@@ -317,7 +317,7 @@ Exchanges must be synchronized in time, this is done by Loop. Loop requires a Tu
     @eophis.all_in_all_out( geo_model=to_lmdz, step=step, niter=niter )
 
 
-Final step is to specify connexions between the exchanged data and W25. Connect received data, data to send and W25 in ``loop_core()`` (step 8):
+Final step is to specify connexions between the exchanged data and W25. Connect received data, data to send and DJ08 in ``loop_core()`` (step 8):
 
 .. code-block :: python
 

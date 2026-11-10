@@ -251,7 +251,7 @@ We will now browse the directories of the ``BENCH32x32x39.DJ08`` experiment to d
 3. CONFIG - LMDZ case
 ---------------------
 
-This directory contains the material to compile LMDZ. Since the **Compilation** section of the ``README`` did not mention any specific tool for the compilation, we will follow the standard `modipsl configuration structure <https://ipsl.pages.in2p3.fr/icmc/plateforme/documentation/igcmg_doc/Install/>`_. Note that the latter is automatically deployed with the ``install_lmdz.sh`` script.
+This directory contains required material to compile LMDZ. Since the **Compilation** section of the ``README`` did not mention any specific tool for the compilation, we will follow the standard `modipsl configuration structure <https://ipsl.pages.in2p3.fr/icmc/plateforme/documentation/igcmg_doc/Install/>`_. Note that the latter is automatically deployed with the ``install_lmdz.sh`` script.
 
 
 .. code-block:: bash

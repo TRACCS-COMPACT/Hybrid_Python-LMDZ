@@ -42,4 +42,4 @@ All the experiments are documented in a self contained separate GitHub repositor
 .. _Eophis: https://github.com/meom-group/eophis/
 .. _OASIS3-MCT: https://oasis.cerfacs.fr/en/
 .. _LMDZ: https://lmdz.lmd.jussieu.fr/
-.. _TRACCS-COMPACT: https://psl.hal.science/TRACCS-PC5-COMPACT
+.. _TRACCS-COMPACT: https://pepr-traccs.fr/projet/pc5-compact/

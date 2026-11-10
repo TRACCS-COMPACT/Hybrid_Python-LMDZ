@@ -32,7 +32,7 @@ Current LMDZ releases do include an OASIS3-MCT module. However, it is restricted
 TRACCS-COMPACT provides `patches <https://github.com/TRACCS-COMPACT/Hybrid_Python-LMDZ/tree/main/LMDZ_Patches>`_ with the abovementionned modifications of the LMDZ code. More details about modifications are available `here <https://github.com/TRACCS-COMPACT/Hybrid_Python-LMDZ/blob/main/LMDZ_Patches/README.md>`_. As a user, you just need to copy them in the ``libf`` directory of LMDZ6.
 
 
-Coupling properties of the fields to send and receive are stored in ``infosend`` and ``inforecv`` arrays, respectively. Flexibility of OASIS3-MCT in LMDZ6 relies on an extra dimension in ``infosend`` and ``inforecv`` to sort coupling fields properties between the modules that are using the OASIS3-MCT interface. To optimize memory, ``infosend`` and ``inforecv`` are variables that allows to create batches of coupling properties arrays. This way, it is possible to allocate different array sizes according to the modules. For example:
+Coupling properties of the fields to send and receive are stored in ``infosend`` and ``inforecv`` arrays, respectively. Flexibility of OASIS3-MCT in LMDZ6 relies on an extra dimension in ``infosend`` and ``inforecv`` to sort coupling fields properties between the modules that are using the OASIS3-MCT interface. To optimize memory, ``infosend`` and ``inforecv`` are variables that allow to create batches of coupling properties arrays. This way, it is possible to allocate different array sizes according to the modules. For example:
 
 .. code-block :: Fortran
 
@@ -326,7 +326,7 @@ Configuration of OASIS3-MCT following Eophis definitions in LMDZ6 is automatical
     CALL receive_from_python_phys('theta_w', theta_w, itap)
 
 
-.. note :: ``GRD`` is here to specify that it should be replaced by ``cpl`` or ``phys``. The former functions handle fields discretized on the coupling grid (flattened OMP-gathered physics grid), while the latter hanfles fields discretized on the OMP-shared physics grid and perform the conversion. For fields defined on the dynamic grid or others, the conversion must be done by the user. For a demonstration of array tranfer, check the use case LMDZ-GCM96x96x35.K26.
+.. note :: ``GRD`` is here to specify that it should be replaced by ``cpl`` or ``phys``. The former functions handle fields discretized on the coupling grid (flattened OMP-gathered physics grid), while the latter handles fields discretized on the OMP-shared physics grid and perform the conversion. For fields defined on the dynamic grid or others, the conversion must be done by the user. For a demonstration of array tranfer, check the use case LMDZ-GCM96x96x35.K26.
 
 
 These functions can be used anywhere in LMDZ by importing the ``pycpl`` module. For more convenience, it can be useful to gather all sendings and or receivings in two different routines, then to call them at different moments of the time loop. This is the way to take advantage of parallel execution of LMDZ6 and the Python scripts and reduce waiting time for Python returns.
