@@ -4,6 +4,17 @@ from eophis import Freqs, Domains
 # other modules
 import argparse
 import os
+from pathlib import Path
+
+def read_def(filename):
+    path = Path(filename)
+    if not path.is_file():
+        path = Path("~/to_host/LMDZ6_PY/modipsl/config/BENCH32x32x39").expanduser() / filename
+
+    with open(path) as f:
+        return dict(line.strip().split("=", 1) for line in f
+                    if "=" in line and not line.lstrip().startswith("#"))
+
 
 def earth_info():
     """
@@ -22,13 +33,12 @@ def earth_info():
 
 
     # Step 3: get info from LMDZ namelists
-    with open("run.def") as f:
-        d = dict(line.strip().split("=", 1) for line in f if "=" in line and not line.lstrip().startswith("#"))
-        nday = int(d["nday"])
-    with open("gcm.def") as f:
-        d = dict(line.strip().split("=", 1) for line in f if "=" in line and not line.lstrip().startswith("#"))
-        day_step = int(d["day_step"])
-        iphysiq = int(d["iphysiq"])
+    run = read_def("run.def")
+    gcm = read_def("gcm.def")
+    
+    nday = int(run["nday"])
+    day_step = int(gcm["day_step"])
+    iphysiq = int(gcm["iphysiq"])
 
     step = # ...
     ite_end = # ... 
