@@ -476,6 +476,6 @@ Re-execute Eophis preproduction in config and run LMDZ-Eophis:
 Going further
 -------------
 
-You have seen the minimal steps to set up a hybrid LMDZ experiment. We invite you to read `Eophis tutorial <https://eophis.readthedocs.io/en/latest/tutorial.html>`_ and `configuration guide for LMDZ <https://morays-doc.readthedocs.io/en/latest/lmdz.api.html>`_ to discover advanced coupling features.
+You have seen the minimal steps to set up a hybrid LMDZ experiment. We invite you to read `Eophis tutorial <https://eophis.readthedocs.io/en/latest/tutorial.html>`_ and `configuration guide for LMDZ <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz.api.html>`_ to discover advanced coupling features.
 
-If this tutorial helped you to build a new hybrid experiment with LMDZ, it would be greatly apreciated if you could `contribute to the TRACCS-COMPACT collection <https://morays-doc.readthedocs.io/en/latest/contribute.html>`_.
+If this tutorial helped you to build a new hybrid experiment with LMDZ, it would be greatly apreciated if you could `contribute to the TRACCS-COMPACT collection <https://hybrid-python-lmdz.readthedocs.io/en/latest/contribute.html>`_.

@@ -27,13 +27,13 @@ All the experiments are documented in a self contained separate GitHub repositor
 .. note ::
 
     Newcomers are welcome to start with this tutorial:
-        - `Reproduce an existing hybrid LMDZ experiment <https://morays-doc.readthedocs.io/en/latest/lmdz.getting_started.html>`_
+        - `Reproduce an existing hybrid LMDZ experiment <https://hybrid-python-lmdz.readthedocs.io/en/latest/getting_started.html>`_
 
     People familiar with Eophis or LMDZ are encouraged to follow this tutorial:
-        - `Create a hybrid LMDZ experiment <https://morays-doc.readthedocs.io/en/latest/lmdz.tuto.html>`_
+        - `Create a hybrid LMDZ experiment <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz.tuto.html>`_
 
     Advanced users can find advanced tools and informations in corresponding model sections:
-        - `LMDZ-Eophis <https://morays-doc.readthedocs.io/en/latest/lmdz.api.html>`_
+        - `LMDZ-Eophis <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz.api.html>`_
     For a detailed description of the Eophis computational performance and comparisons with alternative approaches, see:
         - `Barge et al. (2026) – Deploying machine learning components coupled to Earth System Models with OASIS3-MCT (v6) and Eophis (v1.1) <https://doi.org/10.5194/gmd-19-10345-2026>`_
 

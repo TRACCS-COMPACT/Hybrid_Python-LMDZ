@@ -335,4 +335,4 @@ These functions can be used anywhere in LMDZ by importing the ``pycpl`` module. 
 Compile LMDZ
 ------------
 
-After configurating the communication module, LMDZ must be compiled with active *key_eophis* CPP key and OASIS3-MCT_v5.0 (see this `guide <https://morays-doc.readthedocs.io/en/latest/nemo.getting_started.html#morays-environment>`_).
+After configurating the communication module, LMDZ must be compiled with active *key_eophis* CPP key and OASIS3-MCT_v5.0 (see this `guide <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz.getting_started.html#morays-environment>`_).

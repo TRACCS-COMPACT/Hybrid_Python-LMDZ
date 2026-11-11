@@ -8,7 +8,7 @@ Hybrid LMDZ collection
 This is a summary of the experiments hosted in TRACCS-COMPACT.
 
 To reproduce an experiment, follow these tutorials:
-    - `Reproduce hybrid LMDZ experiment <https://morays-doc.readthedocs.io/en/latest/lmdz.getting_started.html>`_
+    - `Reproduce hybrid LMDZ experiment <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz.getting_started.html>`_
 
 
 LMDZ experiments
