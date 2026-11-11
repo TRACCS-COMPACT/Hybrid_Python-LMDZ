@@ -21,13 +21,13 @@ Typical applications include:
 
 -------------------------------
 
-All the experiments are documented in a self contained separate GitHub repository, that provides all the material for reproducing the use case. List of available experiments can be found in this `section <https://morays-doc.readthedocs.io/en/latest/lmdz_exp.html>`_. A last objective of this documentation is to give detailed guidelines to create custom hybrid LMDZ test cases.
+All the experiments are documented in a self contained separate GitHub repository, that provides all the material for reproducing the use case. List of available experiments can be found in this `section <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz_exp.html>`_. A last objective of this documentation is to give detailed guidelines to create custom hybrid LMDZ test cases.
 
 
 .. note ::
 
     Newcomers are welcome to start with this tutorial:
-        - `Reproduce an existing hybrid LMDZ experiment <https://hybrid-python-lmdz.readthedocs.io/en/latest/getting_started.html>`_
+        - `Reproduce an existing hybrid LMDZ experiment <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz.getting_started.html>`_
 
     People familiar with Eophis or LMDZ are encouraged to follow this tutorial:
         - `Create a hybrid LMDZ experiment <https://hybrid-python-lmdz.readthedocs.io/en/latest/lmdz.tuto.html>`_
